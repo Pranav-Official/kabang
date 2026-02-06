@@ -38,6 +38,12 @@ router.get('/', async (c) => {
 
   if (match) {
     const [, bang, terms] = match
+    
+    // Special case: !kabang redirects to the dashboard
+    if (bang.toLowerCase() === 'kabang') {
+      return c.redirect('/dashboard', 307)
+    }
+    
     searchTerms = terms
     url = await getBangUrl(bang)
 
