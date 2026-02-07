@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { getAllKabangs, getKabangById, createKabang, updateKabang, deleteKabang, fetchAllBangs } from '../db-service'
+import { getAllKabangs, getKabangById, createKabang, updateKabang, deleteKabang, fetchAllBangs, exportBangs, importBangs, type ExportBang } from '../db-service'
 import { bangCache } from '../cache'
 import { validateCreateBody, validateUpdateBody } from '../validation'
 import { parseIdParam } from '../utils'
@@ -102,6 +102,58 @@ router.delete('/:id', async (c) => {
   } catch (error) {
     console.error('Error deleting kabang:', error)
     return c.json({ error: 'Failed to delete kabang' }, 500)
+  }
+})
+
+router.get('/export/json', async (c) => {
+  try {
+    const bangs = await exportBangs()
+    c.header('Content-Type', 'application/json')
+    c.header('Content-Disposition', 'attachment; filename="kabangs.json"')
+    return c.json(bangs)
+  } catch (error) {
+    console.error('Error exporting bangs:', error)
+    return c.json({ error: 'Failed to export bangs' }, 500)
+  }
+})
+
+router.post('/import/json', async (c) => {
+  let body: unknown
+  try {
+    body = await c.req.json()
+  } catch {
+    return c.json({ error: 'Invalid JSON body' }, 400)
+  }
+
+  // Validate that body is an array
+  if (!Array.isArray(body)) {
+    return c.json({ error: 'Body must be an array of bangs' }, 400)
+  }
+
+  // Validate each item has required fields
+  const bangs = body as ExportBang[]
+  const invalidBangs = bangs.filter(
+    (b) => !b.name || !b.bang || !b.url
+  )
+  
+  if (invalidBangs.length > 0) {
+    return c.json({ 
+      error: 'Some bangs are missing required fields (name, bang, url)', 
+      invalidBangs 
+    }, 400)
+  }
+
+  try {
+    const result = await importBangs(bangs)
+    await refreshCache()
+    return c.json({ 
+      message: 'Import completed',
+      imported: result.imported,
+      errors: result.errors
+    })
+  } catch (error) {
+    console.error('Error importing bangs:', error)
+    return c.json({ error: 'Failed to import bangs' }, 500)
   }
 })
 

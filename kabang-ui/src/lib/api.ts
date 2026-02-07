@@ -21,6 +21,20 @@ export interface CreateKabangData {
 
 export interface UpdateKabangData extends Partial<CreateKabangData> {}
 
+export interface ExportBang {
+  name: string
+  bang: string
+  url: string
+  category: string | null
+  isDefault: boolean
+}
+
+export interface ImportResult {
+  message: string
+  imported: number
+  errors: string[]
+}
+
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = localStorage.getItem('auth-token')
   
@@ -71,4 +85,29 @@ export const api = {
     window.location.href = `${API_URL}/search?q=${encodeURIComponent(query)}`
     return Promise.resolve()
   },
+
+  // Export/Import
+  exportBangs: (): Promise<void> => {
+    const token = localStorage.getItem('auth-token')
+    const url = `${API_URL}/kabangs/export/json`
+    
+    // Create a temporary link to download the file
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'kabangs.json')
+    if (token) {
+      link.setAttribute('headers', `Authorization: Bearer ${token}`)
+    }
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    
+    return Promise.resolve()
+  },
+
+  importBangs: (data: ExportBang[]): Promise<ImportResult> => 
+    fetchWithAuth(`${API_URL}/kabangs/import/json`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 }

@@ -43,3 +43,20 @@ export function useDeleteKabang() {
     },
   })
 }
+
+export function useExportBangs() {
+  return useMutation({
+    mutationFn: api.exportBangs,
+  })
+}
+
+export function useImportBangs() {
+  const queryClient = useQueryClient()
+  
+  return useMutation({
+    mutationFn: (data: Parameters<typeof api.importBangs>[0]) => api.importBangs(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [KABANGS_KEY] })
+    },
+  })
+}

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useKabangs, useCreateKabang, useUpdateKabang, useDeleteKabang } from '../hooks/use-kabangs'
-import { Plus, Search, Edit2, Trash2, Star, X, Check, StarOff } from 'lucide-react'
-import { useState } from 'react'
+import { useKabangs, useCreateKabang, useUpdateKabang, useDeleteKabang, useExportBangs, useImportBangs } from '../hooks/use-kabangs'
+import { Plus, Search, Edit2, Trash2, Star, X, Check, StarOff, Download, Upload } from 'lucide-react'
+import { useState, useRef } from 'react'
 import type { Kabang, CreateKabangData } from '../lib/api'
 
 export const Route = createFileRoute('/dashboard')({
@@ -13,8 +13,12 @@ function DashboardPage() {
   const createMutation = useCreateKabang()
   const updateMutation = useUpdateKabang()
   const deleteMutation = useDeleteKabang()
+  const exportMutation = useExportBangs()
+  const importMutation = useImportBangs()
   
   const [searchQuery, setSearchQuery] = useState('')
+  const [importError, setImportError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingKabang, setEditingKabang] = useState<Kabang | null>(null)
   const [formData, setFormData] = useState<CreateKabangData>({
@@ -90,6 +94,52 @@ function DashboardPage() {
         id: kabang.id,
         data: { isDefault: true },
       })
+    }
+  }
+
+  const handleExport = async () => {
+    try {
+      await exportMutation.mutateAsync()
+    } catch (err) {
+      console.error('Export failed:', err)
+      alert('Export failed. Please try again.')
+    }
+  }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleImportFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setImportError(null)
+
+    try {
+      const text = await file.text()
+      const data = JSON.parse(text)
+
+      if (!Array.isArray(data)) {
+        setImportError('Invalid file format: must be a JSON array')
+        return
+      }
+
+      const result = await importMutation.mutateAsync(data)
+      
+      if (result.errors.length > 0) {
+        setImportError(`Imported ${result.imported} bangs with ${result.errors.length} errors`)
+      } else {
+        alert(`Successfully imported ${result.imported} bangs`)
+      }
+    } catch (err) {
+      console.error('Import failed:', err)
+      setImportError(err instanceof Error ? err.message : 'Import failed')
+    } finally {
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
@@ -171,7 +221,37 @@ function DashboardPage() {
               <Plus className="w-4 h-4" />
               Add Bang
             </button>
+            <button
+              onClick={handleExport}
+              disabled={exportMutation.isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </button>
+            <button
+              onClick={handleImportClick}
+              disabled={importMutation.isPending}
+              className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <Upload className="w-4 h-4" />
+              Import
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImportFile}
+              className="hidden"
+            />
           </div>
+
+          {/* Import Error */}
+          {importError && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 text-yellow-700 dark:text-yellow-300 text-sm">
+              {importError}
+            </div>
+          )}
 
           {/* Table */}
           {filteredKabangs?.length === 0 ? (

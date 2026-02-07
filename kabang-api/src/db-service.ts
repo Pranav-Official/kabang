@@ -53,3 +53,70 @@ export async function deleteKabang(id: number): Promise<Kabang | null> {
   const result = await db.delete(kabangs).where(eq(kabangs.id, id)).returning()
   return result[0] ?? null
 }
+
+export type ExportBang = {
+  name: string
+  bang: string
+  url: string
+  category: string | null
+  isDefault: boolean
+}
+
+export async function exportBangs(): Promise<ExportBang[]> {
+  return db.select({
+    name: kabangs.name,
+    bang: kabangs.bang,
+    url: kabangs.url,
+    category: kabangs.category,
+    isDefault: kabangs.isDefault,
+  }).from(kabangs)
+}
+
+export async function importBangs(bangs: ExportBang[]): Promise<{ imported: number; errors: string[] }> {
+  const errors: string[] = []
+  let imported = 0
+
+  for (const bang of bangs) {
+    try {
+      // Validate required fields
+      if (!bang.name || !bang.bang || !bang.url) {
+        errors.push(`Skipping invalid bang: ${JSON.stringify(bang)}`)
+        continue
+      }
+
+      // Check if bang already exists
+      const existing = await db
+        .select({ id: kabangs.id })
+        .from(kabangs)
+        .where(eq(kabangs.bang, bang.bang))
+        .get()
+
+      if (existing) {
+        // Update existing
+        await db
+          .update(kabangs)
+          .set({
+            name: bang.name,
+            url: bang.url,
+            category: bang.category,
+            isDefault: bang.isDefault,
+          })
+          .where(eq(kabangs.id, existing.id))
+      } else {
+        // Insert new
+        await db.insert(kabangs).values({
+          name: bang.name,
+          bang: bang.bang,
+          url: bang.url,
+          category: bang.category,
+          isDefault: bang.isDefault,
+        })
+      }
+      imported++
+    } catch (error) {
+      errors.push(`Error importing bang "${bang.bang}": ${error}`)
+    }
+  }
+
+  return { imported, errors }
+}
