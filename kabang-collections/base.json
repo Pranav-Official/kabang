@@ -1,0 +1,177 @@
+[
+  {
+    "name": "Google",
+    "bang": "g",
+    "url": "https://www.google.com/search?q={query}",
+    "category": "Search",
+    "isDefault": true
+  },
+  {
+    "name": "Bing",
+    "bang": "b",
+    "url": "https://www.bing.com/search?q={query}",
+    "category": "Search",
+    "isDefault": false
+  },
+  {
+    "name": "DuckDuckGo",
+    "bang": "ddg",
+    "url": "https://duckduckgo.com/?q={query}",
+    "category": "Search",
+    "isDefault": false
+  },
+  {
+    "name": "Brave Search",
+    "bang": "brave",
+    "url": "https://search.brave.com/search?q={query}",
+    "category": "Search",
+    "isDefault": false
+  },
+  {
+    "name": "YouTube",
+    "bang": "yt",
+    "url": "https://www.youtube.com/results?search_query={query}",
+    "category": "Social",
+    "isDefault": false
+  },
+  {
+    "name": "Twitter/X",
+    "bang": "x",
+    "url": "https://x.com/search?q={query}",
+    "category": "Social",
+    "isDefault": false
+  },
+  {
+    "name": "Reddit",
+    "bang": "r",
+    "url": "https://www.reddit.com/search/?q={query}",
+    "category": "Social",
+    "isDefault": false
+  },
+  {
+    "name": "Instagram",
+    "bang": "ig",
+    "url": "https://www.instagram.com/explore/tags/{query}/",
+    "category": "Social",
+    "isDefault": false
+  },
+  {
+    "name": "LinkedIn",
+    "bang": "li",
+    "url": "https://www.linkedin.com/search/results/all/?keywords={query}",
+    "category": "Social",
+    "isDefault": false
+  },
+  {
+    "name": "GitHub",
+    "bang": "gh",
+    "url": "https://github.com/search?q={query}&type=repositories",
+    "category": "Development",
+    "isDefault": false
+  },
+  {
+    "name": "Amazon",
+    "bang": "amz",
+    "url": "https://www.amazon.com/s?k={query}",
+    "category": "Shopping",
+    "isDefault": false
+  },
+  {
+    "name": "Wikipedia",
+    "bang": "w",
+    "url": "https://en.wikipedia.org/wiki/Special:Search?search={query}",
+    "category": "Reference",
+    "isDefault": false
+  },
+  {
+    "name": "Dictionary.com",
+    "bang": "dict",
+    "url": "https://www.dictionary.com/browse/{query}",
+    "category": "Reference",
+    "isDefault": false
+  },
+  {
+    "name": "Google Maps",
+    "bang": "maps",
+    "url": "https://www.google.com/maps/search/{query}",
+    "category": "Maps",
+    "isDefault": false
+  },
+  {
+    "name": "Google News",
+    "bang": "news",
+    "url": "https://news.google.com/search?q={query}",
+    "category": "News",
+    "isDefault": false
+  },
+  {
+    "name": "Spotify",
+    "bang": "spotify",
+    "url": "https://open.spotify.com/search/{query}",
+    "category": "Entertainment",
+    "isDefault": false
+  },
+  {
+    "name": "Netflix",
+    "bang": "netflix",
+    "url": "https://www.netflix.com/search?q={query}",
+    "category": "Entertainment",
+    "isDefault": false
+  },
+  {
+    "name": "IMDb",
+    "bang": "imdb",
+    "url": "https://www.imdb.com/find?q={query}",
+    "category": "Entertainment",
+    "isDefault": false
+  },
+  {
+    "name": "Translate",
+    "bang": "tr",
+    "url": "https://translate.google.com/?text={query}",
+    "category": "Utilities",
+    "isDefault": false
+  },
+  {
+    "name": "Gmail",
+    "bang": "gmail",
+    "url": "https://mail.google.com/mail/u/0/#search/{query}",
+    "category": "Utilities",
+    "isDefault": false
+  },
+  {
+    "name": "ChatGPT",
+    "bang": "chat",
+    "url": "https://chat.openai.com/?q={query}",
+    "category": "AI",
+    "isDefault": false
+  },
+  {
+    "name": "Claude",
+    "bang": "claude",
+    "url": "https://claude.ai/new?q={query}",
+    "category": "AI",
+    "isDefault": false
+  },
+  {
+    "name": "Perplexity",
+    "bang": "p",
+    "url": "https://www.perplexity.ai/search?q={query}",
+    "category": "AI",
+    "isDefault": false
+  },
+  {
+    "name": "Google Drive",
+    "bang": "drive",
+    "url": "https://drive.google.com/drive/search?q={query}",
+    "category": "Files",
+    "isDefault": false
+  },
+  {
+    "name": "Google Docs",
+    "bang": "docs",
+    "url": "https://docs.google.com/document/u/0/?q={query}",
+    "category": "Files",
+    "isDefault": false
+  }
+]

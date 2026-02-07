@@ -394,18 +394,18 @@ function DashboardPage() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  URL Template *
+                  URL or Template *
                 </label>
                 <input
                   type="text"
                   value={formData.url}
                   onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  placeholder="https://google.com/search?q={query}"
+                  placeholder="https://google.com/search?q={query} or https://gmail.com"
                   required
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Use {'{query}'} where search term should go
+                  Use {'{query}'} for searches, or any URL as a shortcut.
                 </p>
               </div>
 
@@ -415,7 +415,7 @@ function DashboardPage() {
                 </label>
                 <input
                   type="text"
-                  value={formData.category}
+                  value={formData.category || ''}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   placeholder="Search"
