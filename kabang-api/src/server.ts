@@ -1,6 +1,6 @@
 import app from './index'
 
-const port = process.env.PORT ? parseInt(process.env.PORT) : 3000
+const port = process.env.PORT ? parseInt(process.env.PORT) : 5674
 
 console.log(`Starting Kabang API server on port ${port}...`)
 

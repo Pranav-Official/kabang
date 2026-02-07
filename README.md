@@ -150,21 +150,13 @@ Or import your own custom JSON:
 
 To actually *use* bangs, you need to set Kabang as your browser's search engine:
 
-### Firefox
-1. Go to `about:preferences#search`
-2. Click "Add" under Search Shortcuts
-3. Name: `Kabang`
-4. Keyword: `!`
-5. URL: `http://localhost:3000/search?q=%s`
-
-### Chrome
-1. Go to Settings → Search engine → Manage search engines
-2. Click "Add"
-3. Name: `Kabang`
-4. Keyword: `!`
-5. URL: `http://localhost:3000/search?q=%s`
-
-Now type `!` in your address bar, hit Tab, and go wild!
+1. Open your favorite browser settings
+2. Add a new search engine with this URL:
+   ```
+   http://localhost:5674/search?q=%s
+   ```
+3. Make it your default search engine
+4. Type `!kabang` in your address bar to access the dashboard
 
 ---
 
