@@ -3,7 +3,6 @@
   "scripts": {
     "dev": "bun run --hot src/server.ts",
     "start": "bun run src/server.ts",
-    "seed": "bun run src/seed.ts",
     "build-ui": "cd ../kabang-ui && bun run build && bun run ../kabang-api/scripts/copy-build.js",
     "build": "bun run build-ui"
   },
