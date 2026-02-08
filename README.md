@@ -23,7 +23,7 @@ Remember DuckDuckGo's `!w` for Wikipedia? `!a` for Amazon? That's a **bang** —
 
 ---
 
-## 🏗️ Architecture (aka "How the Magic Happens")
+## 🏗️ Architecture
 
 This project is a beautiful monorepo with three musketeers:
 
@@ -34,21 +34,21 @@ This project is a beautiful monorepo with three musketeers:
 └── 📁 kabang-collections/# Pre-made bang collections (JSON)
 ```
 
-### 🎨 Frontend (@kabang-ui/)
-- **Framework:** React 19 (living on the edge!)
-- **Router:** TanStack Router (file-based routing, because why not)
-- **Styling:** Tailwind CSS 4 (utility-first goodness)
-- **State:** TanStack Query (server state management wizardry)
-- **Icons:** Lucide React (gorgeous, consistent icons)
-- **Build:** Vite (blazing fast, because life is too short for slow builds)
+### 🎨 Frontend (kabang-ui/)
+- **Framework:** React 19
+- **Router:** TanStack Router
+- **Styling:** Tailwind CSS 4
+- **State:** TanStack Query
+- **Icons:** Lucide React
+- **Build:** Vite
 
-### ⚡ Backend (@kabang-api/)
-- **Runtime:** Bun (JavaScript on steroids)
-- **Framework:** Hono (lightning-fast, minimal web framework)
-- **Database:** SQLite via Drizzle ORM (simple, fast, no hassle)
-- **Cache:** In-memory cache for bang lookups (because speed matters)
+### ⚡ Backend (kabang-api/)
+- **Runtime:** Bun
+- **Framework:** Hono
+- **Database:** SQLite via Drizzle ORM
+- **Cache:** In-memory cache for bang lookups
 
-### 📚 Collections (@kabang-collections/)
+### 📚 Collections (kabang-collections/)
 Pre-made JSON files with popular bangs you can import. Starting with `base.json` — 25+ bangs ready to go!
 
 ---
@@ -148,14 +148,56 @@ Your Kabang server is now running at `http://localhost:5674` 🎉
 
 ## 🎮 How to Use
 
+### 🔧 Setting Up Your Browser
+
+To use bangs, you need to set Kabang as your browser's search engine:
+
+1. Open your browser settings
+2. Add a new search engine with this URL:
+   ```
+   http://localhost:5674/search?q=%s
+   ```
+3. Make it your default search engine
+
+Now you can type `!kabang` in your address bar to access the dashboard.
+
+### 🔍 Bang Suggestions (Autocomplete)
+
+Kabang supports the OpenSearch Suggestions Extension 1.1 standard, which enables autocomplete in your browser's address bar:
+
+**Suggestion URL:**
+```
+http://localhost:5674/suggestions?q={searchTerms}
+```
+
+**Response Format:**
+```json
+[
+  "!gi",
+  ["!g", "!gh", "!gmail"],
+  ["Google (Search)", "GitHub (Development)", "Gmail (Utilities)"],
+  []
+]
+```
+
+**Behavior:**
+- Returns fuzzy-matched bang suggestions as you type
+- Stops suggesting once a valid bang is detected (e.g., `!g` won't suggest other bangs)
+- Shows bang name and category in the description
+
+**Setting up in your browser:**
+1. Add the search engine with suggestion URL:
+   ```
+   http://localhost:5674/suggestions?q=%s
+   ```
+2. The browser will automatically show bang suggestions as you type `!`
+
 ### Accessing the Dashboard
 
 Once your server is running, open your browser and go to:
 ```
-http://localhost:5674
+http://localhost:5674/dashboard
 ```
-
-Or type `!kabang` in the search box — yes, we added a bang for our own dashboard because we're meta like that.
 
 ### 📝 Managing Bangs
 
@@ -184,24 +226,9 @@ Or import your own custom JSON:
     "bang": "custom",
     "url": "https://example.com/search?q={query}",
     "category": "Custom",
-    "isDefault": false
   }
 ]
 ```
-
----
-
-## 🔧 Setting Up Your Browser
-
-To actually *use* bangs, you need to set Kabang as your browser's search engine:
-
-1. Open your favorite browser settings
-2. Add a new search engine with this URL:
-   ```
-   http://localhost:5674/search?q=%s
-   ```
-3. Make it your default search engine
-4. Type `!kabang` in your address bar to access the dashboard
 
 ---
 

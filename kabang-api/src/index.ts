@@ -3,10 +3,11 @@ import { logger } from 'hono/logger'
 import { serveStatic } from 'hono/bun'
 import { readFileSync } from 'fs'
 import { join } from 'path'
-import { fetchAllBangs } from './db-service'
+import { getAllKabangs } from './db-service'
 import { bangCache } from './cache'
 import kabangsRouter from './routes/kabangs'
 import searchRouter from './routes/search'
+import suggestionsRouter from './routes/suggestions'
 
 // Custom CORS middleware
 const corsMiddleware = async (c: any, next: any) => {
@@ -33,8 +34,10 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Initialize cache
 async function initializeCache(): Promise<void> {
-  const allBangs = await fetchAllBangs()
-  allBangs.forEach(({ bang, url }) => bangCache.set(bang, url))
+  const allKabangs = await getAllKabangs()
+  allKabangs.forEach(({ bang, url, name, category }) => {
+    bangCache.setFull({ bang, url, name, category })
+  })
   console.log(`Cache initialized: ${bangCache.size()} bangs`)
 }
 
@@ -53,9 +56,11 @@ app.use('/logo512.png', serveStatic({ path: join(staticRoot, 'logo512.png') }))
 // API Routes with CORS
 app.use('/kabangs/*', corsMiddleware)
 app.use('/search/*', corsMiddleware)
+app.use('/suggestions/*', corsMiddleware)
 app.get('/', corsMiddleware, (c) => c.text('Hello Hono!'))
 app.route('/kabangs', kabangsRouter)
 app.route('/search', searchRouter)
+app.route('/suggestions', suggestionsRouter)
 
 // Serve dashboard UI for /dashboard route
 app.get('/dashboard', (c) => {

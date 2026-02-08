@@ -48,7 +48,13 @@ router.get('/', async (c) => {
     url = await getBangUrl(bang)
 
     if (!url) {
-      return c.json({ error: `Bang '!${bang}' not found` }, 404)
+      // Bang not found, use default search with entire query including the bang
+      url = await getDefaultUrl()
+      if (!url) {
+        return c.json({ error: 'No default search engine configured' }, 404)
+      }
+      // Use the entire query as search terms (including the bang)
+      searchTerms = query
     }
   } else {
     searchTerms = query

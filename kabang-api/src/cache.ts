@@ -6,8 +6,15 @@ interface CacheEntry<T> {
   cachedAt: number
 }
 
+interface BangInfo {
+  bang: string
+  url: string
+  name: string
+  category: string | null
+}
+
 export class BangCache {
-  private cache = new Map<string, CacheEntry<string>>()
+  private cache = new Map<string, CacheEntry<BangInfo>>()
   private defaultEntry: CacheEntry<string | null> | null = null
 
   get(bang: string): string | null {
@@ -17,7 +24,7 @@ export class BangCache {
       this.cache.delete(bang)
       return null
     }
-    return entry.data
+    return entry.data.url
   }
 
   getDefault(): string | null {
@@ -30,11 +37,39 @@ export class BangCache {
   }
 
   set(bang: string, url: string): void {
-    this.cache.set(bang, { data: url, cachedAt: Date.now() })
+    const existing = this.cache.get(bang)
+    this.cache.set(bang, { 
+      data: { 
+        bang, 
+        url, 
+        name: existing?.data.name || bang,
+        category: existing?.data.category || null
+      }, 
+      cachedAt: Date.now() 
+    })
+  }
+
+  setFull(bang: BangInfo): void {
+    this.cache.set(bang.bang, { data: bang, cachedAt: Date.now() })
   }
 
   setDefault(url: string | null): void {
     this.defaultEntry = { data: url, cachedAt: Date.now() }
+  }
+
+  getAllBangs(): BangInfo[] {
+    const now = Date.now()
+    const bangs: BangInfo[] = []
+    
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - entry.cachedAt > CACHE_TTL_MS) {
+        this.cache.delete(key)
+      } else {
+        bangs.push(entry.data)
+      }
+    }
+    
+    return bangs
   }
 
   clear(): void {

@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { getAllKabangs, getKabangById, createKabang, updateKabang, deleteKabang, fetchAllBangs, exportBangs, importBangs, type ExportBang } from '../db-service'
+import { getAllKabangs, getKabangById, createKabang, updateKabang, deleteKabang, exportBangs, importBangs, type ExportBang } from '../db-service'
 import { bangCache } from '../cache'
 import { validateCreateBody, validateUpdateBody } from '../validation'
 import { parseIdParam } from '../utils'
@@ -8,8 +8,10 @@ const router = new Hono()
 
 async function refreshCache(): Promise<void> {
   bangCache.clear()
-  const allBangs = await fetchAllBangs()
-  allBangs.forEach(({ bang, url }) => bangCache.set(bang, url))
+  const allKabangs = await getAllKabangs()
+  allKabangs.forEach(({ bang, url, name, category }) => {
+    bangCache.setFull({ bang, url, name, category })
+  })
   console.log(`Cache refreshed: ${bangCache.size()} bangs`)
 }
 
