@@ -55,8 +55,53 @@ Pre-made JSON files with popular bangs you can import. Starting with `base.json`
 
 ## 🚀 Getting Started
 
+The fastest way to get Kabang running? **Docker.** One command and you're bangin'! 💥
+
+---
+
+## 🐳 Docker (The Easy Way)
+
+No dependencies to install. No build steps to remember. Just:
+
+### Using Docker Compose (Recommended)
+```bash
+# Clone the repo
+git clone <repo-url>
+cd kabang
+
+# Start it up
+docker-compose up -d
+```
+
+That's it! Access Kabang at `http://localhost:5674`
+
+### Using Docker/Podman directly
+```bash
+# Build the image
+docker build -t kabang .
+# OR with Podman
+podman build -t kabang .
+
+# Run it
+docker run -p 5674:5674 kabang
+# OR with Podman
+podman run -p 5674:5674 kabang
+```
+
+**What the Docker image does automatically:**
+1. ✅ Installs all dependencies
+2. ✅ Builds the React UI
+3. ✅ Seeds the database with 25+ bangs from base collection
+4. ✅ Starts the API server on port 5674
+
+---
+
+## 🔨 Build from Source (For Developers)
+
+Want to hack on Kabang? Build it from source!
+
 ### Prerequisites
-- [Bun](https://bun.sh/) installed (the entire stack runs on Bun)
+- [Bun](https://bun.sh/) installed
 - A terminal and a dream
 
 ### 🏃 Quick Start
@@ -97,7 +142,7 @@ bun run dev     # Development mode (hot reload)
 bun run start   # Production mode
 ```
 
-Your Kabang server is now running at `http://localhost:3000` 🎉
+Your Kabang server is now running at `http://localhost:5674` 🎉
 
 ---
 
@@ -107,7 +152,7 @@ Your Kabang server is now running at `http://localhost:3000` 🎉
 
 Once your server is running, open your browser and go to:
 ```
-http://localhost:3000
+http://localhost:5674
 ```
 
 Or type `!kabang` in the search box — yes, we added a bang for our own dashboard because we're meta like that.
@@ -237,7 +282,7 @@ You forgot to build! Run `bun run build-ui` in the API directory.
 SQLite doesn't like multiple processes. Make sure you only have one instance of the API running.
 
 ### Port already in use
-The API runs on port 3000 by default. Change it in `kabang-api/src/server.ts` if needed.
+The API runs on port 5674 by default. Change it in `kabang-api/src/server.ts` if needed.
 
 ---
 
