@@ -1,5 +1,5 @@
 import { db, kabangs, isDatabaseConnected, retryPostgresConnection } from './db'
-import { eq } from 'drizzle-orm'
+import { eq, asc } from 'drizzle-orm'
 import type { Kabang, NewKabang } from './db'
 
 // Helper to handle DB errors gracefully
@@ -39,6 +39,19 @@ export async function fetchBangByName(bang: string): Promise<string | null> {
   )
 }
 
+export async function fetchBangInfoByName(bang: string): Promise<{ id: number; bang: string; url: string; name: string; category: string | null; isDefault: boolean } | null> {
+  return withDbFallback(
+    async () => {
+      const result = await db
+        .select({ id: kabangs.id, bang: kabangs.bang, url: kabangs.url, name: kabangs.name, category: kabangs.category, isDefault: kabangs.isDefault })
+        .from(kabangs)
+        .where(eq(kabangs.bang, bang))
+      return result[0] ?? null
+    },
+    null
+  )
+}
+
 export async function fetchDefaultUrl(): Promise<string | null> {
   return withDbFallback(
     async () => {
@@ -54,7 +67,7 @@ export async function fetchDefaultUrl(): Promise<string | null> {
 
 export async function getAllKabangs(): Promise<Kabang[]> {
   return withDbFallback(
-    () => db.select().from(kabangs),
+    () => db.select().from(kabangs).orderBy(asc(kabangs.createdAt)),
     []
   )
 }

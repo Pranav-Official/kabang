@@ -6,11 +6,13 @@ interface CacheEntry<T> {
   cachedAt: number
 }
 
-interface BangInfo {
+export interface BangInfo {
+  id: number
   bang: string
   url: string
   name: string
   category: string | null
+  isDefault: boolean
 }
 
 export class BangCache {
@@ -36,14 +38,16 @@ export class BangCache {
     return this.defaultEntry.data
   }
 
-  set(bang: string, url: string): void {
+  set(bang: string, url: string, id?: number): void {
     const existing = this.cache.get(bang)
     this.cache.set(bang, { 
       data: { 
+        id: id ?? existing?.data.id ?? 0,
         bang, 
         url, 
         name: existing?.data.name || bang,
-        category: existing?.data.category || null
+        category: existing?.data.category || null,
+        isDefault: existing?.data.isDefault ?? false
       }, 
       cachedAt: Date.now() 
     })

@@ -38,8 +38,15 @@ async function initializeCache(): Promise<void> {
   try {
     const allKabangs = await getAllKabangs();
     if (allKabangs.length > 0) {
-      allKabangs.forEach(({ bang, url, name, category }) => {
-        bangCache.setFull({ bang, url, name: name || bang, category: category || null });
+      allKabangs.forEach(({ id, bang, url, name, category, isDefault }) => {
+        bangCache.setFull({ 
+          id, 
+          bang, 
+          url, 
+          name: name || bang, 
+          category: category || null,
+          isDefault: isDefault || false
+        });
       });
       console.log(`✅ Cache initialized: ${bangCache.size()} bangs from database`);
     } else {

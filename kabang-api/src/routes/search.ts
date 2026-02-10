@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { fetchBangByName, fetchDefaultUrl } from '../db-service'
+import { fetchBangInfoByName, fetchDefaultUrl } from '../db-service'
 import { bangCache } from '../cache'
 import { BANG_REGEX, buildSearchUrl } from '../utils'
 
@@ -11,11 +11,19 @@ async function getBangUrl(bang: string): Promise<string | null> {
   if (url) return url
 
   // If not in cache, try DB (with graceful failure)
-  url = await fetchBangByName(bang)
-  if (url) {
-    bangCache.set(bang, url)
+  const result = await fetchBangInfoByName(bang)
+  if (result) {
+    bangCache.setFull({
+      id: result.id,
+      bang: result.bang,
+      url: result.url,
+      name: result.name,
+      category: result.category,
+      isDefault: result.isDefault
+    })
+    return result.url
   }
-  return url
+  return null
 }
 
 async function getDefaultUrl(): Promise<string | null> {

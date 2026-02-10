@@ -10,8 +10,15 @@ const router = new Hono()
 async function refreshCache(): Promise<void> {
   bangCache.clear()
   const allKabangs = await getAllKabangs()
-  allKabangs.forEach(({ bang, url, name, category }) => {
-    bangCache.setFull({ bang, url, name: name || bang, category: category || null })
+  allKabangs.forEach(({ id, bang, url, name, category, isDefault }) => {
+    bangCache.setFull({ 
+      id, 
+      bang, 
+      url, 
+      name: name || bang, 
+      category: category || null,
+      isDefault: isDefault || false
+    })
   })
   console.log(`Cache refreshed: ${bangCache.size()} bangs`)
 }
@@ -25,8 +32,15 @@ router.get('/', async (c) => {
     const dbBangs = await getAllKabangs()
     if (dbBangs.length > 0) {
       // Populate cache
-      dbBangs.forEach(({ bang, url, name, category }) => {
-        bangCache.setFull({ bang, url, name: name || bang, category: category || null })
+      dbBangs.forEach(({ id, bang, url, name, category, isDefault }) => {
+        bangCache.setFull({ 
+          id, 
+          bang, 
+          url, 
+          name: name || bang, 
+          category: category || null,
+          isDefault: isDefault || false
+        })
       })
       allKabangs = bangCache.getAllBangs()
     }
