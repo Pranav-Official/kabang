@@ -1,89 +1,104 @@
-import { Hono } from 'hono'
-import { logger } from 'hono/logger'
-import { serveStatic } from 'hono/bun'
-import { readFileSync } from 'fs'
-import { join } from 'path'
-import { getAllKabangs } from './db-service'
-import { bangCache } from './cache'
-import kabangsRouter from './routes/kabangs'
-import searchRouter from './routes/search'
-import suggestionsRouter from './routes/suggestions'
+import { Hono } from "hono";
+import { logger } from "hono/logger";
+import { serveStatic } from "hono/bun";
+import { readFileSync } from "fs";
+import { join } from "path";
+import { getAllKabangs } from "./db-service";
+import { bangCache } from "./cache";
+import kabangsRouter from "./routes/kabangs";
+import searchRouter from "./routes/search";
+import suggestionsRouter from "./routes/suggestions";
 
 // Custom CORS middleware
 const corsMiddleware = async (c: any, next: any) => {
-  c.header('Access-Control-Allow-Origin', 'http://localhost:5123')
-  c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  c.header('Access-Control-Max-Age', '86400')
-  
-  if (c.req.method === 'OPTIONS') {
-    return c.text('', 204)
+  c.header("Access-Control-Allow-Origin", "http://localhost:5123");
+  c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  c.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  c.header("Access-Control-Max-Age", "86400");
+
+  if (c.req.method === "OPTIONS") {
+    return c.text("", 204);
   }
-  
-  await next()
-}
 
-const app = new Hono()
+  await next();
+};
 
-const staticRoot = join(process.cwd(), 'public', 'ui-build')
+const app = new Hono();
+
+const staticRoot = join(process.cwd(), "public", "ui-build");
 
 // Middleware
-if (process.env.NODE_ENV !== 'production') {
-  app.use(logger())
+if (process.env.NODE_ENV !== "production") {
+  app.use(logger());
 }
 
 // Initialize cache
 async function initializeCache(): Promise<void> {
-  const allKabangs = await getAllKabangs()
+  const allKabangs = await getAllKabangs();
   allKabangs.forEach(({ bang, url, name, category }) => {
-    bangCache.setFull({ bang, url, name, category })
-  })
-  console.log(`Cache initialized: ${bangCache.size()} bangs`)
+    bangCache.setFull({ bang, url, name, category });
+  });
+  console.log(`Cache initialized: ${bangCache.size()} bangs`);
 }
 
-initializeCache().catch(console.error)
+initializeCache().catch(console.error);
 
 // Serve static assets FIRST (before API routes and SPA fallback)
-app.use('/assets/*', serveStatic({ root: staticRoot }))
-app.use('/favicon.ico', serveStatic({ path: join(staticRoot, 'favicon.ico') }))
-app.use('/manifest.json', serveStatic({ path: join(staticRoot, 'manifest.json') }))
-app.use('/robots.txt', serveStatic({ path: join(staticRoot, 'robots.txt') }))
-app.use('/tanstack-circle-logo.png', serveStatic({ path: join(staticRoot, 'tanstack-circle-logo.png') }))
-app.use('/tanstack-word-logo-white.svg', serveStatic({ path: join(staticRoot, 'tanstack-word-logo-white.svg') }))
-app.use('/logo192.png', serveStatic({ path: join(staticRoot, 'logo192.png') }))
-app.use('/logo512.png', serveStatic({ path: join(staticRoot, 'logo512.png') }))
+app.use("/assets/*", serveStatic({ root: staticRoot }));
+app.use("/favicon.ico", serveStatic({ path: join(staticRoot, "favicon.ico") }));
+app.use(
+  "/manifest.json",
+  serveStatic({ path: join(staticRoot, "manifest.json") }),
+);
+app.use("/robots.txt", serveStatic({ path: join(staticRoot, "robots.txt") }));
+app.use(
+  "/tanstack-circle-logo.png",
+  serveStatic({ path: join(staticRoot, "tanstack-circle-logo.png") }),
+);
+app.use(
+  "/tanstack-word-logo-white.svg",
+  serveStatic({ path: join(staticRoot, "tanstack-word-logo-white.svg") }),
+);
+app.use("/logo192.png", serveStatic({ path: join(staticRoot, "logo192.png") }));
+app.use("/logo512.png", serveStatic({ path: join(staticRoot, "logo512.png") }));
 
 // API Routes with CORS
-app.use('/kabangs/*', corsMiddleware)
-app.use('/search/*', corsMiddleware)
-app.use('/suggestions/*', corsMiddleware)
-app.get('/', corsMiddleware, (c) => c.text('Hello Hono!'))
-app.route('/kabangs', kabangsRouter)
-app.route('/search', searchRouter)
-app.route('/suggestions', suggestionsRouter)
+app.use("/kabangs/*", corsMiddleware);
+app.use("/search/*", corsMiddleware);
+app.use("/suggestions/*", corsMiddleware);
+app.get("/", corsMiddleware, (c) => c.text("Hello Hono!"));
+app.route("/kabangs", kabangsRouter);
+app.route("/search", searchRouter);
+app.route("/suggestions", suggestionsRouter);
 
 // Serve dashboard UI for /dashboard route
-app.get('/dashboard', (c) => {
+app.get("/dashboard", (c) => {
   try {
-    const indexPath = join(staticRoot, 'index.html')
-    const html = readFileSync(indexPath, 'utf-8')
-    return c.html(html)
+    const indexPath = join(staticRoot, "index.html");
+    const html = readFileSync(indexPath, "utf-8");
+    return c.html(html);
   } catch (error) {
-    console.error('Failed to read dashboard HTML:', error)
-    return c.html('<html><body><h1>Kabang Dashboard</h1><p>Error loading dashboard.</p></body></html>', 500)
+    console.error("Failed to read dashboard HTML:", error);
+    return c.html(
+      "<html><body><h1>Kabang Dashboard</h1><p>Error loading dashboard.</p></body></html>",
+      500,
+    );
   }
-})
+});
 
 // SPA fallback - serve index.html for any other route (client-side routing)
-app.get('/*', (c) => {
+app.get("/*", (c) => {
   try {
-    const indexPath = join(staticRoot, 'index.html')
-    const html = readFileSync(indexPath, 'utf-8')
-    return c.html(html)
+    const indexPath = join(staticRoot, "index.html");
+    const html = readFileSync(indexPath, "utf-8");
+    return c.html(html);
   } catch (error) {
-    console.error('Failed to read index.html:', error)
-    return c.html('<html><body><h1>Kabang</h1><p>Error loading application.</p></body></html>', 500)
+    console.error("Failed to read index.html:", error);
+    return c.html(
+      "<html><body><h1>Kabang</h1><p>Error loading application.</p></body></html>",
+      500,
+    );
   }
-})
+});
 
-export default app
+export default app;

@@ -1,7 +1,6 @@
-import { db } from './db'
-import { kabangs } from './schema'
+import { db, kabangs } from './db'
 import { eq } from 'drizzle-orm'
-import type { Kabang, NewKabang } from './schema'
+import type { Kabang, NewKabang } from './db'
 
 export async function fetchAllBangs(): Promise<Array<{ bang: string; url: string }>> {
   return db.select({ bang: kabangs.bang, url: kabangs.url }).from(kabangs)
@@ -12,8 +11,7 @@ export async function fetchBangByName(bang: string): Promise<string | null> {
     .select({ url: kabangs.url })
     .from(kabangs)
     .where(eq(kabangs.bang, bang))
-    .get()
-  return result?.url ?? null
+  return result[0]?.url ?? null
 }
 
 export async function fetchDefaultUrl(): Promise<string | null> {
@@ -21,8 +19,7 @@ export async function fetchDefaultUrl(): Promise<string | null> {
     .select({ url: kabangs.url })
     .from(kabangs)
     .where(eq(kabangs.isDefault, true))
-    .get()
-  return result?.url ?? null
+  return result[0]?.url ?? null
 }
 
 export async function getAllKabangs(): Promise<Kabang[]> {
@@ -30,7 +27,8 @@ export async function getAllKabangs(): Promise<Kabang[]> {
 }
 
 export async function getKabangById(id: number): Promise<Kabang | undefined> {
-  return db.select().from(kabangs).where(eq(kabangs.id, id)).get()
+  const result = await db.select().from(kabangs).where(eq(kabangs.id, id))
+  return result[0]
 }
 
 export async function createKabang(data: NewKabang): Promise<Kabang> {
@@ -89,9 +87,8 @@ export async function importBangs(bangs: ExportBang[]): Promise<{ imported: numb
         .select({ id: kabangs.id })
         .from(kabangs)
         .where(eq(kabangs.bang, bang.bang))
-        .get()
 
-      if (existing) {
+      if (existing[0]) {
         // Update existing
         await db
           .update(kabangs)
@@ -101,7 +98,7 @@ export async function importBangs(bangs: ExportBang[]): Promise<{ imported: numb
             category: bang.category,
             isDefault: bang.isDefault,
           })
-          .where(eq(kabangs.id, existing.id))
+          .where(eq(kabangs.id, existing[0].id))
       } else {
         // Insert new
         await db.insert(kabangs).values({
