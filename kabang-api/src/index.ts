@@ -9,6 +9,7 @@ import { isDatabaseConnected, databaseType } from "./db";
 import kabangsRouter from "./routes/kabangs";
 import searchRouter from "./routes/search";
 import suggestionsRouter from "./routes/suggestions";
+import { handleSpecialBang } from "./routes/special-bangs";
 
 // Custom CORS middleware
 const corsMiddleware = async (c: any, next: any) => {
@@ -86,8 +87,8 @@ app.use("/suggestions/*", corsMiddleware);
 app.use("/health", corsMiddleware);
 
 // Health check endpoint
-app.get("/health", (c) => {
-  const dbConnected = isDatabaseConnected();
+app.get("/health", async (c) => {
+  const dbConnected = await isDatabaseConnected();
   return c.json({
     status: "ok",
     database: {
@@ -102,7 +103,18 @@ app.get("/health", (c) => {
 
 app.get("/", corsMiddleware, (c) => c.text("Hello Hono!"));
 app.route("/kabangs", kabangsRouter);
+
+// Handle special bangs (!kabang, !add) before regular search
+app.use("/search", async (c, next) => {
+  const query = c.req.query("q") || "";
+  const specialResult = await handleSpecialBang(c, query);
+  if (specialResult) {
+    return specialResult;
+  }
+  await next();
+});
 app.route("/search", searchRouter);
+
 app.route("/suggestions", suggestionsRouter);
 
 // Serve dashboard UI for /dashboard route
