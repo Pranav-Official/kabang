@@ -5,6 +5,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { getAllKabangs } from "./db-service";
 import { bangCache } from "./cache";
+import { isDatabaseConnected, databaseType } from "./db";
 import kabangsRouter from "./routes/kabangs";
 import searchRouter from "./routes/search";
 import suggestionsRouter from "./routes/suggestions";
@@ -34,11 +35,20 @@ if (process.env.NODE_ENV !== "production") {
 
 // Initialize cache
 async function initializeCache(): Promise<void> {
-  const allKabangs = await getAllKabangs();
-  allKabangs.forEach(({ bang, url, name, category }) => {
-    bangCache.setFull({ bang, url, name, category });
-  });
-  console.log(`Cache initialized: ${bangCache.size()} bangs`);
+  try {
+    const allKabangs = await getAllKabangs();
+    if (allKabangs.length > 0) {
+      allKabangs.forEach(({ bang, url, name, category }) => {
+        bangCache.setFull({ bang, url, name: name || bang, category: category || null });
+      });
+      console.log(`✅ Cache initialized: ${bangCache.size()} bangs from database`);
+    } else {
+      console.log("⚠️  No bangs found in database. Cache is empty.");
+    }
+  } catch (error) {
+    console.error("⚠️  Cache initialization failed (database unavailable):", error);
+    console.log("📝 Search and listing will work once database is available and bangs are added.");
+  }
 }
 
 initializeCache().catch(console.error);
@@ -66,6 +76,23 @@ app.use("/logo512.png", serveStatic({ path: join(staticRoot, "logo512.png") }));
 app.use("/kabangs/*", corsMiddleware);
 app.use("/search/*", corsMiddleware);
 app.use("/suggestions/*", corsMiddleware);
+app.use("/health", corsMiddleware);
+
+// Health check endpoint
+app.get("/health", (c) => {
+  const dbConnected = isDatabaseConnected();
+  return c.json({
+    status: "ok",
+    database: {
+      type: databaseType,
+      connected: dbConnected,
+    },
+    cache: {
+      bangs: bangCache.size(),
+    },
+  });
+});
+
 app.get("/", corsMiddleware, (c) => c.text("Hello Hono!"));
 app.route("/kabangs", kabangsRouter);
 app.route("/search", searchRouter);

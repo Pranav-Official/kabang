@@ -1,29 +1,62 @@
-import { db, kabangs } from './db'
+import { db, kabangs, isDatabaseConnected, retryPostgresConnection } from './db'
 import { eq } from 'drizzle-orm'
 import type { Kabang, NewKabang } from './db'
 
+// Helper to handle DB errors gracefully
+async function withDbFallback<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    if (!isDatabaseConnected()) {
+      // Try to reconnect if using PostgreSQL
+      await retryPostgresConnection()
+      if (!isDatabaseConnected()) {
+        return fallback
+      }
+    }
+    return await operation()
+  } catch (error) {
+    console.error('Database operation failed:', error)
+    return fallback
+  }
+}
+
 export async function fetchAllBangs(): Promise<Array<{ bang: string; url: string }>> {
-  return db.select({ bang: kabangs.bang, url: kabangs.url }).from(kabangs)
+  return withDbFallback(
+    () => db.select({ bang: kabangs.bang, url: kabangs.url }).from(kabangs),
+    []
+  )
 }
 
 export async function fetchBangByName(bang: string): Promise<string | null> {
-  const result = await db
-    .select({ url: kabangs.url })
-    .from(kabangs)
-    .where(eq(kabangs.bang, bang))
-  return result[0]?.url ?? null
+  return withDbFallback(
+    async () => {
+      const result = await db
+        .select({ url: kabangs.url })
+        .from(kabangs)
+        .where(eq(kabangs.bang, bang))
+      return result[0]?.url ?? null
+    },
+    null
+  )
 }
 
 export async function fetchDefaultUrl(): Promise<string | null> {
-  const result = await db
-    .select({ url: kabangs.url })
-    .from(kabangs)
-    .where(eq(kabangs.isDefault, true))
-  return result[0]?.url ?? null
+  return withDbFallback(
+    async () => {
+      const result = await db
+        .select({ url: kabangs.url })
+        .from(kabangs)
+        .where(eq(kabangs.isDefault, true))
+      return result[0]?.url ?? null
+    },
+    null
+  )
 }
 
 export async function getAllKabangs(): Promise<Kabang[]> {
-  return db.select().from(kabangs)
+  return withDbFallback(
+    () => db.select().from(kabangs),
+    []
+  )
 }
 
 export async function getKabangById(id: number): Promise<Kabang | undefined> {

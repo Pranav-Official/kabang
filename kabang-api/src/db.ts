@@ -14,42 +14,55 @@ const sqliteDbPath = process.env.SQLITE_DB_PATH || "sqlite.db";
 let db: any;
 let dbType: DatabaseType;
 let kabangs: any;
+let isDbConnected = false;
+let pgClient: Client | null = null;
 
-if (postgresConnectionString) {
-  dbType = "postgresql";
+async function initializePostgres(): Promise<boolean> {
+  if (!postgresConnectionString) return false;
   
-  // Define PostgreSQL table
-  kabangs = pgTable("kabangs", {
-    id: serial("id").primaryKey(),
-    name: pgText("name").notNull(),
-    bang: pgText("bang").notNull().unique(),
-    url: pgText("url").notNull().unique(),
-    category: pgText("category"),
-    isDefault: boolean("is_default").default(false),
-    createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
-  });
-  
-  const client = new Client({
-    connectionString: postgresConnectionString,
-  });
-  
-  await client.connect();
-  
-  // Initialize PostgreSQL table
-  await client.query(`
-    CREATE TABLE IF NOT EXISTS kabangs (
-      id SERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      bang TEXT NOT NULL UNIQUE,
-      url TEXT NOT NULL UNIQUE,
-      category TEXT,
-      is_default BOOLEAN DEFAULT false,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-  
-  db = drizzlePg(client);
-} else {
+  try {
+    // Define PostgreSQL table
+    kabangs = pgTable("kabangs", {
+      id: serial("id").primaryKey(),
+      name: pgText("name").notNull(),
+      bang: pgText("bang").notNull().unique(),
+      url: pgText("url").notNull().unique(),
+      category: pgText("category"),
+      isDefault: boolean("is_default").default(false),
+      createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
+    });
+    
+    pgClient = new Client({
+      connectionString: postgresConnectionString,
+    });
+    
+    await pgClient.connect();
+    
+    // Initialize PostgreSQL table
+    await pgClient.query(`
+      CREATE TABLE IF NOT EXISTS kabangs (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        bang TEXT NOT NULL UNIQUE,
+        url TEXT NOT NULL UNIQUE,
+        category TEXT,
+        is_default BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    db = drizzlePg(pgClient);
+    isDbConnected = true;
+    console.log("✅ PostgreSQL connected successfully");
+    return true;
+  } catch (error) {
+    console.error("❌ PostgreSQL connection failed:", error);
+    isDbConnected = false;
+    return false;
+  }
+}
+
+function initializeSqlite(): void {
   dbType = "sqlite";
   
   // Define SQLite table
@@ -94,6 +107,33 @@ if (postgresConnectionString) {
   }
   
   db = drizzleSqlite(sqlite);
+  isDbConnected = true;
+  console.log("✅ SQLite initialized successfully");
+}
+
+// Initialize database
+if (postgresConnectionString) {
+  dbType = "postgresql";
+  const pgInitialized = await initializePostgres();
+  if (!pgInitialized) {
+    console.log("⚠️  Falling back to cache-only mode (PostgreSQL unavailable)");
+  }
+} else {
+  initializeSqlite();
+}
+
+// Function to check if DB is available
+export function isDatabaseConnected(): boolean {
+  return isDbConnected;
+}
+
+// Function to retry PG connection
+export async function retryPostgresConnection(): Promise<boolean> {
+  if (dbType === "postgresql" && !isDbConnected && postgresConnectionString) {
+    console.log("🔄 Retrying PostgreSQL connection...");
+    return await initializePostgres();
+  }
+  return isDbConnected;
 }
 
 // Export types

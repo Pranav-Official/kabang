@@ -3,6 +3,7 @@ import { getAllKabangs, getKabangById, createKabang, updateKabang, deleteKabang,
 import { bangCache } from '../cache'
 import { validateCreateBody, validateUpdateBody } from '../validation'
 import { parseIdParam } from '../utils'
+import { isDatabaseConnected } from '../db'
 
 const router = new Hono()
 
@@ -10,13 +11,27 @@ async function refreshCache(): Promise<void> {
   bangCache.clear()
   const allKabangs = await getAllKabangs()
   allKabangs.forEach(({ bang, url, name, category }) => {
-    bangCache.setFull({ bang, url, name, category })
+    bangCache.setFull({ bang, url, name: name || bang, category: category || null })
   })
   console.log(`Cache refreshed: ${bangCache.size()} bangs`)
 }
 
 router.get('/', async (c) => {
-  const allKabangs = await getAllKabangs()
+  // Try cache first, fallback to DB if cache is empty
+  let allKabangs = bangCache.getAllBangs()
+  
+  // If cache is empty, try to load from DB
+  if (allKabangs.length === 0) {
+    const dbBangs = await getAllKabangs()
+    if (dbBangs.length > 0) {
+      // Populate cache
+      dbBangs.forEach(({ bang, url, name, category }) => {
+        bangCache.setFull({ bang, url, name: name || bang, category: category || null })
+      })
+      allKabangs = bangCache.getAllBangs()
+    }
+  }
+  
   return c.json(allKabangs)
 })
 
@@ -35,6 +50,11 @@ router.get('/:id', async (c) => {
 })
 
 router.post('/', async (c) => {
+  // Check if database is available for write operations
+  if (!isDatabaseConnected()) {
+    return c.json({ error: 'Database unavailable. Cannot create bang at this time.' }, 503)
+  }
+
   let body: unknown
   try {
     body = await c.req.json()
@@ -58,6 +78,11 @@ router.post('/', async (c) => {
 })
 
 router.put('/:id', async (c) => {
+  // Check if database is available for write operations
+  if (!isDatabaseConnected()) {
+    return c.json({ error: 'Database unavailable. Cannot update bang at this time.' }, 503)
+  }
+
   const id = parseIdParam(c.req.param('id'))
   if (id === null) {
     return c.json({ error: 'Invalid ID format' }, 400)
@@ -89,6 +114,11 @@ router.put('/:id', async (c) => {
 })
 
 router.delete('/:id', async (c) => {
+  // Check if database is available for write operations
+  if (!isDatabaseConnected()) {
+    return c.json({ error: 'Database unavailable. Cannot delete bang at this time.' }, 503)
+  }
+
   const id = parseIdParam(c.req.param('id'))
   if (id === null) {
     return c.json({ error: 'Invalid ID format' }, 400)
@@ -120,6 +150,11 @@ router.get('/export/json', async (c) => {
 })
 
 router.post('/import/json', async (c) => {
+  // Check if database is available for write operations
+  if (!isDatabaseConnected()) {
+    return c.json({ error: 'Database unavailable. Cannot import bangs at this time.' }, 503)
+  }
+
   let body: unknown
   try {
     body = await c.req.json()

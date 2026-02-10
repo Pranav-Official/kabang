@@ -6,9 +6,11 @@ import { BANG_REGEX, buildSearchUrl } from '../utils'
 const router = new Hono()
 
 async function getBangUrl(bang: string): Promise<string | null> {
+  // Always try cache first
   let url = bangCache.get(bang)
   if (url) return url
 
+  // If not in cache, try DB (with graceful failure)
   url = await fetchBangByName(bang)
   if (url) {
     bangCache.set(bang, url)
@@ -17,11 +19,15 @@ async function getBangUrl(bang: string): Promise<string | null> {
 }
 
 async function getDefaultUrl(): Promise<string | null> {
+  // Always try cache first
   let url = bangCache.getDefault()
   if (url) return url
 
+  // If not in cache, try DB (with graceful failure)
   url = await fetchDefaultUrl()
-  bangCache.setDefault(url)
+  if (url) {
+    bangCache.setDefault(url)
+  }
   return url
 }
 
