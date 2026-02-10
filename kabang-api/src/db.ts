@@ -9,6 +9,7 @@ import { sql } from "drizzle-orm";
 export type DatabaseType = "sqlite" | "postgresql";
 
 const postgresConnectionString = process.env.POSTGRES_CONNECTION_STRING;
+const sqliteDbPath = process.env.SQLITE_DB_PATH || "sqlite.db";
 
 let db: any;
 let dbType: DatabaseType;
@@ -62,7 +63,7 @@ if (postgresConnectionString) {
     createdAt: sqliteText("created_at").default(sql`CURRENT_TIMESTAMP`),
   });
   
-  const sqlite = new Database("sqlite.db");
+  const sqlite = new Database(sqliteDbPath);
   sqlite.run("PRAGMA journal_mode = WAL;");
   
   // Initialize SQLite table

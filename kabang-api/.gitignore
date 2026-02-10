@@ -8,4 +8,4 @@ public/ui-build/
 *.db-journal
 *.db-wal
 *.db-shm
-
+.env

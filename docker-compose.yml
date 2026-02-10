@@ -7,3 +7,16 @@ services:
       - "5674:5674"
     restart: unless-stopped
     container_name: kabang
+    environment:
+      # Database Connection String
+      # Leave empty or unset to use SQLite (default)
+      # Set to a PostgreSQL connection string to use PostgreSQL
+      # POSTGRES_CONNECTION_STRING: "postgresql://user:password@host:5432/database?sslmode=require"
+      
+      # Examples:
+      # - Neon: postgresql://user:pass@host.neon.tech/db?sslmode=require
+      # - Supabase: postgresql://postgres.[project]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+      # - Self-hosted: postgresql://user:pass@localhost:5432/dbname
+    volumes:
+      # Persist SQLite database (only used when POSTGRES_CONNECTION_STRING is not set)
+      - ./data/sqlite.db:/app/kabang-api/sqlite.db

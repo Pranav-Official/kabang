@@ -1,0 +1,11 @@
+# Docker data directory (SQLite database and uploads)
+data/
+
+# Environment files
+.env
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
