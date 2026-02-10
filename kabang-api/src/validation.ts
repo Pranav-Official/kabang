@@ -2,8 +2,8 @@ export interface CreateKabangBody {
   name: string
   bang: string
   url: string
-  category?: string | null
-  isDefault?: boolean
+  category: string | null
+  isDefault: boolean
 }
 
 export type UpdateKabangBody = Partial<CreateKabangBody>
@@ -31,7 +31,7 @@ export function validateCreateBody(body: unknown): { valid: true; data: CreateKa
       name: b.name,
       bang: b.bang,
       url: b.url,
-      category: b.category === undefined ? undefined : (b.category as string | null),
+      category: b.category === undefined ? null : (b.category as string | null),
       isDefault: b.isDefault === true,
     },
   }
@@ -58,7 +58,7 @@ export function validateUpdateBody(body: unknown): { valid: true; data: UpdateKa
     data.url = b.url
   }
   if (b.category !== undefined) {
-    data.category = b.category as string | null
+    data.category = b.category === null ? null : (b.category as string)
   }
   if (b.isDefault !== undefined) {
     data.isDefault = b.isDefault === true

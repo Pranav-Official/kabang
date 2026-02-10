@@ -45,7 +45,7 @@ This project is a beautiful monorepo with three musketeers:
 ### ⚡ Backend (kabang-api/)
 - **Runtime:** Bun
 - **Framework:** Hono
-- **Database:** SQLite via Drizzle ORM
+- **Database:** SQLite (default) or PostgreSQL via Drizzle ORM
 - **Cache:** In-memory cache for bang lookups
 
 ### 📚 Collections (kabang-collections/)
@@ -64,6 +64,8 @@ The fastest way to get Kabang running? **Docker.** One command and you're bangin
 No dependencies to install. No build steps to remember. Just:
 
 ### Using Docker Compose (Recommended)
+
+#### SQLite (Default - Zero Configuration)
 ```bash
 # Clone the repo
 git clone <repo-url>
@@ -74,8 +76,20 @@ docker-compose up -d
 ```
 
 That's it! Access Kabang at `http://localhost:5674`
+Data is persisted in `./data/sqlite.db`
+
+#### PostgreSQL (Optional)
+```bash
+# Create .env file with your PostgreSQL connection string
+echo "POSTGRES_CONNECTION_STRING=postgresql://user:password@host:5432/database?sslmode=require" > .env
+
+# Start it up
+docker-compose up -d
+```
 
 ### Using Docker/Podman directly
+
+#### SQLite (Default)
 ```bash
 # Build the image
 docker build -t kabang .
@@ -83,9 +97,18 @@ docker build -t kabang .
 podman build -t kabang .
 
 # Run it
-docker run -p 5674:5674 kabang
+docker run -p 5674:5674 -v ./data:/app/kabang-api/data kabang
 # OR with Podman
-podman run -p 5674:5674 kabang
+podman run -p 5674:5674 -v ./data:/app/kabang-api/data kabang
+```
+
+#### PostgreSQL (Optional)
+```bash
+# Build the image
+docker build -t kabang .
+
+# Run with PostgreSQL connection string
+docker run -p 5674:5674 -e POSTGRES_CONNECTION_STRING="postgresql://user:password@host:5432/database?sslmode=require" kabang
 ```
 
 **What the Docker image does automatically:**
@@ -93,6 +116,9 @@ podman run -p 5674:5674 kabang
 2. ✅ Builds the React UI
 3. ✅ Seeds the database with 25+ bangs from base collection
 4. ✅ Starts the API server on port 5674
+
+**📋 Configuration Reference:**
+See `.env.example` for all available environment variables and configuration options.
 
 ---
 
@@ -103,6 +129,7 @@ Want to hack on Kabang? Build it from source!
 ### Prerequisites
 - [Bun](https://bun.sh/) installed
 - A terminal and a dream
+- (Optional) PostgreSQL database if you want to use PostgreSQL instead of SQLite
 
 ### 🏃 Quick Start
 
@@ -118,9 +145,22 @@ bun install
 ```
 
 #### 2. Set up the database
+
+**Option A: SQLite (Default - No configuration needed)**
 ```bash
 cd kabang-api
 bun run src/db.ts  # This initializes your SQLite database
+```
+
+**Option B: PostgreSQL (Optional)**
+```bash
+cd kabang-api
+
+# Set the environment variable
+export POSTGRES_CONNECTION_STRING="postgresql://user:password@host:5432/database?sslmode=require"
+
+# Or create a .env file
+echo "POSTGRES_CONNECTION_STRING=postgresql://user:password@host:5432/database?sslmode=require" > .env
 ```
 
 #### 3. Build the UI (Required!)
@@ -307,6 +347,13 @@ You forgot to build! Run `bun run build-ui` in the API directory.
 
 ### Database locked
 SQLite doesn't like multiple processes. Make sure you only have one instance of the API running.
+
+### PostgreSQL connection failed
+If using PostgreSQL, ensure:
+- `POSTGRES_CONNECTION_STRING` is set correctly
+- The connection string format is: `postgresql://user:password@host:port/database?sslmode=require`
+- For Docker, the variable is in your `.env` file or docker-compose.yml
+- For manual builds, export it in your shell or create a `.env` file in `kabang-api/`
 
 ### Port already in use
 The API runs on port 5674 by default. Change it in `kabang-api/src/server.ts` if needed.

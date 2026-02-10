@@ -1,36 +1,80 @@
-import { db } from './db'
-import { kabangs } from './schema'
-import { eq } from 'drizzle-orm'
-import type { Kabang, NewKabang } from './schema'
+import { db, kabangs, isDatabaseConnected, retryPostgresConnection } from './db'
+import { eq, asc } from 'drizzle-orm'
+import type { Kabang, NewKabang } from './db'
+
+// Helper to handle DB errors gracefully
+async function withDbFallback<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
+  try {
+    if (!isDatabaseConnected()) {
+      // Try to reconnect if using PostgreSQL
+      await retryPostgresConnection()
+      if (!isDatabaseConnected()) {
+        return fallback
+      }
+    }
+    return await operation()
+  } catch (error) {
+    console.error('Database operation failed:', error)
+    return fallback
+  }
+}
 
 export async function fetchAllBangs(): Promise<Array<{ bang: string; url: string }>> {
-  return db.select({ bang: kabangs.bang, url: kabangs.url }).from(kabangs)
+  return withDbFallback(
+    () => db.select({ bang: kabangs.bang, url: kabangs.url }).from(kabangs),
+    []
+  )
 }
 
 export async function fetchBangByName(bang: string): Promise<string | null> {
-  const result = await db
-    .select({ url: kabangs.url })
-    .from(kabangs)
-    .where(eq(kabangs.bang, bang))
-    .get()
-  return result?.url ?? null
+  return withDbFallback(
+    async () => {
+      const result = await db
+        .select({ url: kabangs.url })
+        .from(kabangs)
+        .where(eq(kabangs.bang, bang))
+      return result[0]?.url ?? null
+    },
+    null
+  )
+}
+
+export async function fetchBangInfoByName(bang: string): Promise<{ id: number; bang: string; url: string; name: string; category: string | null; isDefault: boolean } | null> {
+  return withDbFallback(
+    async () => {
+      const result = await db
+        .select({ id: kabangs.id, bang: kabangs.bang, url: kabangs.url, name: kabangs.name, category: kabangs.category, isDefault: kabangs.isDefault })
+        .from(kabangs)
+        .where(eq(kabangs.bang, bang))
+      return result[0] ?? null
+    },
+    null
+  )
 }
 
 export async function fetchDefaultUrl(): Promise<string | null> {
-  const result = await db
-    .select({ url: kabangs.url })
-    .from(kabangs)
-    .where(eq(kabangs.isDefault, true))
-    .get()
-  return result?.url ?? null
+  return withDbFallback(
+    async () => {
+      const result = await db
+        .select({ url: kabangs.url })
+        .from(kabangs)
+        .where(eq(kabangs.isDefault, true))
+      return result[0]?.url ?? null
+    },
+    null
+  )
 }
 
 export async function getAllKabangs(): Promise<Kabang[]> {
-  return db.select().from(kabangs)
+  return withDbFallback(
+    () => db.select().from(kabangs).orderBy(asc(kabangs.createdAt)),
+    []
+  )
 }
 
 export async function getKabangById(id: number): Promise<Kabang | undefined> {
-  return db.select().from(kabangs).where(eq(kabangs.id, id)).get()
+  const result = await db.select().from(kabangs).where(eq(kabangs.id, id))
+  return result[0]
 }
 
 export async function createKabang(data: NewKabang): Promise<Kabang> {
@@ -89,9 +133,8 @@ export async function importBangs(bangs: ExportBang[]): Promise<{ imported: numb
         .select({ id: kabangs.id })
         .from(kabangs)
         .where(eq(kabangs.bang, bang.bang))
-        .get()
 
-      if (existing) {
+      if (existing[0]) {
         // Update existing
         await db
           .update(kabangs)
@@ -101,7 +144,7 @@ export async function importBangs(bangs: ExportBang[]): Promise<{ imported: numb
             category: bang.category,
             isDefault: bang.isDefault,
           })
-          .where(eq(kabangs.id, existing.id))
+          .where(eq(kabangs.id, existing[0].id))
       } else {
         // Insert new
         await db.insert(kabangs).values({

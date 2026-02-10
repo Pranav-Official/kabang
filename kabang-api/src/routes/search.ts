@@ -1,27 +1,41 @@
 import { Hono } from 'hono'
-import { fetchBangByName, fetchDefaultUrl } from '../db-service'
+import { fetchBangInfoByName, fetchDefaultUrl } from '../db-service'
 import { bangCache } from '../cache'
 import { BANG_REGEX, buildSearchUrl } from '../utils'
 
 const router = new Hono()
 
 async function getBangUrl(bang: string): Promise<string | null> {
+  // Always try cache first
   let url = bangCache.get(bang)
   if (url) return url
 
-  url = await fetchBangByName(bang)
-  if (url) {
-    bangCache.set(bang, url)
+  // If not in cache, try DB (with graceful failure)
+  const result = await fetchBangInfoByName(bang)
+  if (result) {
+    bangCache.setFull({
+      id: result.id,
+      bang: result.bang,
+      url: result.url,
+      name: result.name,
+      category: result.category,
+      isDefault: result.isDefault
+    })
+    return result.url
   }
-  return url
+  return null
 }
 
 async function getDefaultUrl(): Promise<string | null> {
+  // Always try cache first
   let url = bangCache.getDefault()
   if (url) return url
 
+  // If not in cache, try DB (with graceful failure)
   url = await fetchDefaultUrl()
-  bangCache.setDefault(url)
+  if (url) {
+    bangCache.setDefault(url)
+  }
   return url
 }
 
