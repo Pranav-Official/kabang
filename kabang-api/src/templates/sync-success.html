@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cache Synced</title>
+  <style>
+    body { font-family: system-ui, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0fdf4; }
+    .message { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; max-width: 400px; }
+    .success { color: #16a34a; }
+    .back { margin-top: 1.5rem; }
+    .back a { color: #4f46e5; text-decoration: none; }
+    .back a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="message">
+    <h2 class="success">✅ Cache Synced!</h2>
+    <p>Loaded {{count}} bangs from database</p>
+    <p style="margin-top: 1rem; color: #6b7280; font-size: 0.875rem;">
+      Cache TTL is now 1 hour
+    </p>
+    <div class="back">
+      <a href="/dashboard">← Back to Dashboard</a>
+    </div>
+  </div>
+</body>
+</html>

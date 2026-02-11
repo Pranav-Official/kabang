@@ -12,13 +12,20 @@ const postgresConnectionString = process.env.POSTGRES_CONNECTION_STRING;
 const sqliteDbPath = process.env.SQLITE_DB_PATH || "sqlite.db";
 
 let db: any;
-let dbType: DatabaseType;
+let dbType: DatabaseType = "sqlite";
 let kabangs: any;
 let isDbConnected = false;
 let pgPool: Pool | null = null;
+let isReconnecting = false; // Lock to prevent concurrent reconnection attempts
 
 async function initializePostgres(): Promise<boolean> {
   if (!postgresConnectionString) return false;
+  
+  // Don't create a new pool if one already exists
+  if (pgPool) {
+    console.log("PostgreSQL pool already exists, skipping initialization");
+    return isDbConnected;
+  }
   
   try {
     // Define PostgreSQL table
@@ -44,24 +51,21 @@ async function initializePostgres(): Promise<boolean> {
     });
     
     // Handle pool errors - CRITICAL: must catch these to prevent crash
-    pgPool.on('error', (err, client) => {
-      console.error('PostgreSQL pool error (caught safely):', err.message || err);
+    pgPool.on('error', (err) => {
+      // Log the error but don't crash
+      console.error('PostgreSQL pool error (handled gracefully):', err.message || 'Connection error');
       isDbConnected = false;
-      // Don't crash - just log and mark as disconnected
+      // Don't re-throw the error - just mark as disconnected
       // The next query will trigger a reconnection attempt
     });
     
-    // Handle client errors on acquisition
+    // Handle client errors on acquisition - silently catch these
     pgPool.on('connect', (client) => {
-      client.on('error', (err) => {
-        console.error('PostgreSQL client error (caught safely):', err.message || err);
-      });
-    });
-    
-    // Handle acquire errors
-    pgPool.on('acquire', (client) => {
-      client.on('error', (err) => {
-        console.error('PostgreSQL acquire error (caught safely):', err.message || err);
+      client.on('error', (err: any) => {
+        // Silently handle connection errors
+        if (err.message?.includes('Connection terminated')) {
+          console.log('PostgreSQL client disconnected (will reconnect on next query)');
+        }
       });
     });
     
@@ -92,9 +96,15 @@ async function initializePostgres(): Promise<boolean> {
   } catch (error) {
     console.error("❌ PostgreSQL connection failed:", error);
     isDbConnected = false;
-    if (pgPool) {
-      await pgPool.end().catch(() => {});
-      pgPool = null;
+    // Clean up the pool on error - set to null FIRST before async cleanup
+    const poolToClean = pgPool;
+    pgPool = null; // Set to null immediately (synchronous) to prevent race conditions
+    if (poolToClean) {
+      try {
+        await poolToClean.end();
+      } catch (e) {
+        // Ignore cleanup errors
+      }
     }
     return false;
   }
@@ -150,19 +160,27 @@ function initializeSqlite(): void {
 }
 
 // Initialize database
-if (postgresConnectionString) {
-  dbType = "postgresql";
-  initializePostgres().then((success) => {
-    if (!success) {
-      console.log("⚠️  Falling back to cache-only mode (PostgreSQL unavailable)");
+async function initDb() {
+  if (postgresConnectionString) {
+    dbType = "postgresql";
+    try {
+      const success = await initializePostgres();
+      if (!success) {
+        console.log("⚠️  Falling back to cache-only mode (PostgreSQL unavailable)");
+      }
+    } catch (err) {
+      console.error("Failed to initialize PostgreSQL:", err);
+      console.log("⚠️  Falling back to cache-only mode");
     }
-  }).catch((err) => {
-    console.error("Failed to initialize PostgreSQL:", err);
-    console.log("⚠️  Falling back to cache-only mode");
-  });
-} else {
-  initializeSqlite();
+  } else {
+    initializeSqlite();
+  }
 }
+
+// Start initialization but don't block
+initDb().catch((err) => {
+  console.error("Database initialization error:", err);
+});
 
 // Function to check if DB is available - also verifies the connection is still alive
 export async function isDatabaseConnected(): Promise<boolean> {
@@ -187,16 +205,34 @@ export async function isDatabaseConnected(): Promise<boolean> {
 
 // Function to retry PG connection
 export async function retryPostgresConnection(): Promise<boolean> {
+  // Prevent concurrent reconnection attempts
+  if (isReconnecting) {
+    console.log("⏳ Reconnection already in progress, waiting...");
+    // Wait a bit and return current status
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return isDbConnected;
+  }
+
   if (dbType === "postgresql" && !isDbConnected && postgresConnectionString) {
+    isReconnecting = true;
     console.log("🔄 Retrying PostgreSQL connection...");
     
-    // Clean up old pool if exists
-    if (pgPool) {
-      await pgPool.end().catch(() => {});
-      pgPool = null;
+    try {
+      // Clean up old pool if exists
+      if (pgPool) {
+        try {
+          await pgPool.end();
+        } catch (e) {
+          // Ignore cleanup errors
+        }
+        pgPool = null;
+      }
+      
+      const result = await initializePostgres();
+      return result;
+    } finally {
+      isReconnecting = false;
     }
-    
-    return await initializePostgres();
   }
   return isDbConnected;
 }

@@ -27,7 +27,7 @@ async function getBangUrl(bang: string): Promise<string | null> {
 }
 
 async function getDefaultUrl(): Promise<string | null> {
-  // Always try cache first
+  // Always try cache first (includes permanent default)
   let url = bangCache.getDefault()
   if (url) return url
 
@@ -35,8 +35,11 @@ async function getDefaultUrl(): Promise<string | null> {
   url = await fetchDefaultUrl()
   if (url) {
     bangCache.setDefault(url)
+    return url
   }
-  return url
+
+  // Final fallback: use permanent default (never expires)
+  return bangCache.getPermanentDefault()
 }
 
 router.get('/', async (c) => {
@@ -60,7 +63,7 @@ router.get('/', async (c) => {
       // Bang not found, use default search with entire query including the bang
       url = await getDefaultUrl()
       if (!url) {
-        return c.json({ error: 'No default search engine configured' }, 404)
+        return c.json({ error: 'No default search engine configured. Please set a default search engine in the dashboard.' }, 404)
       }
       // Use the entire query as search terms (including the bang)
       searchTerms = query
@@ -70,7 +73,7 @@ router.get('/', async (c) => {
     url = await getDefaultUrl()
 
     if (!url) {
-      return c.json({ error: 'No default search engine configured' }, 404)
+      return c.json({ error: 'No default search engine configured. Please set a default search engine in the dashboard.' }, 404)
     }
   }
 
