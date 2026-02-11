@@ -9,7 +9,7 @@ import { isDatabaseConnected, databaseType } from "./db";
 import kabangsRouter from "./routes/kabangs";
 import searchRouter from "./routes/search";
 import suggestionsRouter from "./routes/suggestions";
-import { handleSpecialBang } from "./routes/special-bangs";
+import { handleSpecialBang } from "./utils";
 
 // Custom CORS middleware
 const corsMiddleware = async (c: any, next: any) => {
@@ -48,6 +48,11 @@ async function initializeCache(): Promise<void> {
           category: category || null,
           isDefault: isDefault || false
         });
+        // Store the default URL permanently for fallback
+        if (isDefault && url) {
+          bangCache.setPermanentDefault(url);
+          console.log(`📌 Permanent default URL cached: ${url}`);
+        }
       });
       console.log(`✅ Cache initialized: ${bangCache.size()} bangs from database`);
     } else {

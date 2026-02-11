@@ -19,6 +19,10 @@ async function refreshCache(): Promise<void> {
       category: category || null,
       isDefault: isDefault || false
     })
+    // Update permanent default if this is the default
+    if (isDefault && url) {
+      bangCache.setPermanentDefault(url)
+    }
   })
   console.log(`Cache refreshed: ${bangCache.size()} bangs`)
 }
@@ -26,26 +30,30 @@ async function refreshCache(): Promise<void> {
 router.get('/', async (c) => {
   // Try cache first, fallback to DB if cache is empty
   let allKabangs = bangCache.getAllBangs()
-  
+
   // If cache is empty, try to load from DB
   if (allKabangs.length === 0) {
     const dbBangs = await getAllKabangs()
     if (dbBangs.length > 0) {
       // Populate cache
       dbBangs.forEach(({ id, bang, url, name, category, isDefault }) => {
-        bangCache.setFull({ 
-          id, 
-          bang, 
-          url, 
-          name: name || bang, 
+        bangCache.setFull({
+          id,
+          bang,
+          url,
+          name: name || bang,
           category: category || null,
           isDefault: isDefault || false
         })
+        // Set permanent default if this is the default
+        if (isDefault && url) {
+          bangCache.setPermanentDefault(url)
+        }
       })
       allKabangs = bangCache.getAllBangs()
     }
   }
-  
+
   return c.json(allKabangs)
 })
 

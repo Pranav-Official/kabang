@@ -1,5 +1,5 @@
 // Cache implementation
-const CACHE_TTL_MS = 5 * 60 * 1000
+const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
 
 interface CacheEntry<T> {
   data: T
@@ -17,7 +17,8 @@ export interface BangInfo {
 
 export class BangCache {
   private cache = new Map<string, CacheEntry<BangInfo>>()
-  private defaultEntry: CacheEntry<string | null> | null = null
+  private defaultEntry: { data: string | null; cachedAt: number } | null = null
+  private permanentDefaultUrl: string | null = null
 
   get(bang: string): string | null {
     const entry = this.cache.get(bang)
@@ -30,6 +31,11 @@ export class BangCache {
   }
 
   getDefault(): string | null {
+    // First check permanent cache (never expires)
+    if (this.permanentDefaultUrl) {
+      return this.permanentDefaultUrl
+    }
+    // Then check regular cache with TTL
     if (!this.defaultEntry) return null
     if (Date.now() - this.defaultEntry.cachedAt > CACHE_TTL_MS) {
       this.defaultEntry = null
@@ -61,6 +67,15 @@ export class BangCache {
     this.defaultEntry = { data: url, cachedAt: Date.now() }
   }
 
+  // Set permanent default URL that never expires
+  setPermanentDefault(url: string | null): void {
+    this.permanentDefaultUrl = url
+  }
+
+  getPermanentDefault(): string | null {
+    return this.permanentDefaultUrl
+  }
+
   getAllBangs(): BangInfo[] {
     const now = Date.now()
     const bangs: BangInfo[] = []
@@ -79,6 +94,7 @@ export class BangCache {
   clear(): void {
     this.cache.clear()
     this.defaultEntry = null
+    // Don't clear permanentDefaultUrl - it persists for fallback
   }
 
   size(): number {
