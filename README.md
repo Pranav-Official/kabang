@@ -249,6 +249,34 @@ The dashboard lets you:
 - 📤 **Export** all your bangs to JSON
 - 📥 **Import** bangs from JSON files
 
+## ✨ Special Ka-Bang-Bang (Double Bangs)
+
+In addition to regular bangs, Kabang includes **special double bangs** (Ka-Bang-Bang) that perform system actions:
+
+| Bang | Usage | Description | Category |
+|------|-------|-------------|----------|
+| `!!kabang` | `!!kabang` | Opens the Kabang dashboard | System |
+| `!!sync` | `!!sync` | Refreshes the cache from the database | System |
+| `!!add` | `!!add <newbang> <url>` | Adds a new bookmark directly from the search bar | System |
+
+### Ka-Bang-Bang Use Cases
+
+**`!!kabang`** — Quick Access to Dashboard
+- When you need to manage your bangs quickly
+- Example: `!!kabang` → Redirects to the dashboard
+
+**`!!sync`** — Cache Refresh
+- When you've added bangs directly in the database
+- When the cache seems out of sync
+- Example: `!!sync` → Reloads all bangs from database to cache
+
+**`!!add`** — Quick Bookmark Creation
+- When you want to save a URL without opening the dashboard
+- Format: `!!add docs https://docs.example.com`
+- Creates a new bookmark bang instantly
+
+---
+
 ### 🎁 Importing Pre-made Collections
 
 Don't want to start from scratch? Import our curated collection:
