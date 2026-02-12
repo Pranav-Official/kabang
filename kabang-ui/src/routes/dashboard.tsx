@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useKabangs, useCreateKabang, useUpdateKabang, useDeleteKabang, useExportBangs, useImportBangs } from '../hooks/use-kabangs'
-import { Plus, Search, Edit2, Trash2, Star, X, Check, StarOff, Download, Upload } from 'lucide-react'
+import { Plus, Search, Edit2, Trash2, Star, X, Check, StarOff, Download, Upload, Github } from 'lucide-react'
 import { useState, useRef } from 'react'
 import type { Kabang, CreateKabangData } from '../lib/api'
 
@@ -173,6 +173,15 @@ function DashboardPage() {
                 Kabang Dashboard
               </h1>
             </div>
+            <a
+              href="https://github.com/Pranav-Official/kabang"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 dark:hover:bg-slate-600 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+            >
+              <Github className="w-4 h-4" />
+              GitHub
+            </a>
           </div>
         </div>
       </header>

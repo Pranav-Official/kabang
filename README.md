@@ -6,6 +6,10 @@
 
 No tracking. No third-party reliance. Just pure, unadulterated search power at your fingertips.
 
+<p align="center">
+  <img src="kabang.png" alt="Kabang Showcase" width="600">
+</p>
+
 ---
 
 ## 🎯 What the heck is a "Bang"?
@@ -401,15 +405,3 @@ MIT — Go wild. Make it yours. Build something cool.
 
 ---
 
-## 💬 Final Words
-
-> "Why type more when you can type less?" 
-> — Ancient Kabang Proverb
-
-Happy banging! 🚀
-
----
-
-**P.S.** If you build something awesome with Kabang, show it off! We'd love to see what shortcuts you create.
-
-**P.P.S.** Yes, `!kabang` opens this dashboard. We couldn't resist.
