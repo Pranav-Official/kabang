@@ -7,6 +7,7 @@ import { getAllKabangs } from "./db-service";
 import { bangCache } from "./cache";
 import { isDatabaseConnected, databaseType } from "./db";
 import kabangsRouter from "./routes/kabangs";
+import bookmarksRouter from "./routes/bookmarks";
 import searchRouter from "./routes/search";
 import suggestionsRouter from "./routes/suggestions";
 import { handleSpecialBang } from "./utils";
@@ -87,6 +88,7 @@ app.use("/logo512.png", serveStatic({ path: join(staticRoot, "logo512.png") }));
 
 // API Routes with CORS
 app.use("/kabangs/*", corsMiddleware);
+app.use("/bookmarks/*", corsMiddleware);
 app.use("/search/*", corsMiddleware);
 app.use("/suggestions/*", corsMiddleware);
 app.use("/health", corsMiddleware);
@@ -108,6 +110,7 @@ app.get("/health", async (c) => {
 
 app.get("/", corsMiddleware, (c) => c.text("Hello Hono!"));
 app.route("/kabangs", kabangsRouter);
+app.route("/bookmarks", bookmarksRouter);
 
 // Handle special bangs (!kabang, !add) before regular search
 app.use("/search", async (c, next) => {

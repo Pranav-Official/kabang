@@ -14,6 +14,7 @@ const sqliteDbPath = process.env.SQLITE_DB_PATH || "sqlite.db";
 let db: any;
 let dbType: DatabaseType = "sqlite";
 let kabangs: any;
+let bookmarks: any;
 let isDbConnected = false;
 let pgPool: Pool | null = null;
 let isReconnecting = false; // Lock to prevent concurrent reconnection attempts
@@ -28,7 +29,7 @@ async function initializePostgres(): Promise<boolean> {
   }
   
   try {
-    // Define PostgreSQL table
+    // Define PostgreSQL tables
     kabangs = pgTable("kabangs", {
       id: serial("id").primaryKey(),
       name: pgText("name").notNull(),
@@ -36,6 +37,14 @@ async function initializePostgres(): Promise<boolean> {
       url: pgText("url").notNull().unique(),
       category: pgText("category"),
       isDefault: boolean("is_default").default(false),
+      createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
+    });
+
+    bookmarks = pgTable("bookmarks", {
+      id: serial("id").primaryKey(),
+      url: pgText("url").notNull(),
+      notes: pgText("notes"),
+      category: pgText("category"),
       createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`),
     });
     
@@ -74,7 +83,7 @@ async function initializePostgres(): Promise<boolean> {
     await client.query('SELECT 1');
     client.release();
     
-    // Initialize PostgreSQL table
+    // Initialize PostgreSQL tables
     const setupClient = await pgPool.connect();
     await setupClient.query(`
       CREATE TABLE IF NOT EXISTS kabangs (
@@ -84,6 +93,15 @@ async function initializePostgres(): Promise<boolean> {
         url TEXT NOT NULL UNIQUE,
         category TEXT,
         is_default BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await setupClient.query(`
+      CREATE TABLE IF NOT EXISTS bookmarks (
+        id SERIAL PRIMARY KEY,
+        url TEXT NOT NULL,
+        notes TEXT,
+        category TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
@@ -113,7 +131,7 @@ async function initializePostgres(): Promise<boolean> {
 function initializeSqlite(): void {
   dbType = "sqlite";
   
-  // Define SQLite table
+  // Define SQLite tables
   kabangs = sqliteTable("kabangs", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     name: sqliteText("name").notNull(),
@@ -123,11 +141,19 @@ function initializeSqlite(): void {
     isDefault: integer("is_default", { mode: "boolean" }).default(false),
     createdAt: sqliteText("created_at").default(sql`CURRENT_TIMESTAMP`),
   });
+
+  bookmarks = sqliteTable("bookmarks", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    url: sqliteText("url").notNull(),
+    notes: sqliteText("notes"),
+    category: sqliteText("category"),
+    createdAt: sqliteText("created_at").default(sql`CURRENT_TIMESTAMP`),
+  });
   
   const sqlite = new Database(sqliteDbPath);
   sqlite.run("PRAGMA journal_mode = WAL;");
   
-  // Initialize SQLite table
+  // Initialize SQLite tables
   sqlite.run(`
     CREATE TABLE IF NOT EXISTS kabangs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -136,6 +162,16 @@ function initializeSqlite(): void {
       url TEXT NOT NULL UNIQUE,
       category TEXT,
       is_default INTEGER DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+  
+  sqlite.run(`
+    CREATE TABLE IF NOT EXISTS bookmarks (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      url TEXT NOT NULL,
+      notes TEXT,
+      category TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -260,5 +296,16 @@ export type Kabang = {
 
 export type NewKabang = Omit<Kabang, 'id' | 'createdAt'>;
 
-export { db, kabangs };
+export type Bookmark = {
+  id: number;
+  url: string;
+  notes: string | null;
+  category: string | null;
+  createdAt: string | Date;
+};
+
+export type NewBookmark = Omit<Bookmark, 'id' | 'createdAt'>;
+export type UpdateBookmark = Partial<NewBookmark>;
+
+export { db, kabangs, bookmarks };
 export const databaseType: DatabaseType = dbType;
