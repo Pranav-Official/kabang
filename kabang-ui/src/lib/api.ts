@@ -1,5 +1,6 @@
 // API client for kabang-api
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5674'
+// Use empty string for relative paths (goes through Vite proxy), full URL for production
+const API_URL = import.meta.env.VITE_API_URL || ''
 
 export interface Kabang {
   id: number
@@ -34,6 +35,22 @@ export interface ImportResult {
   imported: number
   errors: string[]
 }
+
+export interface Bookmark {
+  id: number
+  url: string
+  notes: string | null
+  category: string | null
+  createdAt: string
+}
+
+export interface CreateBookmarkData {
+  url: string
+  notes?: string | null
+  category?: string | null
+}
+
+export interface UpdateBookmarkData extends Partial<CreateBookmarkData> {}
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = localStorage.getItem('auth-token')
@@ -109,5 +126,23 @@ export const api = {
     fetchWithAuth(`${API_URL}/kabangs/import/json`, {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  // Bookmarks
+  getAllBookmarks: (): Promise<Bookmark[]> => 
+    fetchWithAuth(`${API_URL}/bookmarks`),
+  
+  getBookmark: (id: number): Promise<Bookmark> => 
+    fetchWithAuth(`${API_URL}/bookmarks/${id}`),
+  
+  updateBookmark: (id: number, data: UpdateBookmarkData): Promise<Bookmark> => 
+    fetchWithAuth(`${API_URL}/bookmarks/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  
+  deleteBookmark: (id: number): Promise<{ message: string }> => 
+    fetchWithAuth(`${API_URL}/bookmarks/${id}`, {
+      method: 'DELETE',
     }),
 }

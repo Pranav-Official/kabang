@@ -80,8 +80,11 @@ export async function handler(c: Context, args: string): Promise<Response> {
       isDefault: false
     })
 
-    // Redirect to the bookmarked URL
-    return c.redirect(bookmarkUrl, 307)
+    // Show success page with redirect
+    return c.html(loadTemplate(TEMPLATES.ADD_SUCCESS, { 
+      bookmarkName: bookmarkBang, 
+      url: bookmarkUrl 
+    }))
   } catch (error) {
     console.error('Error creating bookmark:', error)
     return c.html(loadTemplate(TEMPLATES.ADD_DB_CONNECTION_ERROR))

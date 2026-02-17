@@ -1,6 +1,6 @@
 # 🚀 Kabang
 
-> *The search shortcut system you never knew you needed (but totally do)*
+> _The search shortcut system you never knew you needed (but totally do)_
 
 **Kabang** is your own, self-hosted, completely customizable search bang service — heavily inspired by DuckDuckGo's legendary `!bang` shortcuts. Ever wished you could type `!gh react hooks` and magically land on GitHub's search results? Or `!yt lo-fi beats` and be vibing in seconds? **Now you can. And it's all yours.**
 
@@ -14,7 +14,7 @@ No tracking. No third-party reliance. Just pure, unadulterated search power at y
 
 ## 🎯 What the heck is a "Bang"?
 
-Remember DuckDuckGo's `!w` for Wikipedia? `!a` for Amazon? That's a **bang** — a magical prefix that instantly routes your search to the right place. Kabang brings that same superpower to your own server, with *your* custom shortcuts.
+Remember DuckDuckGo's `!w` for Wikipedia? `!a` for Amazon? That's a **bang** — a magical prefix that instantly routes your search to the right place. Kabang brings that same superpower to your own server, with _your_ custom shortcuts.
 
 ```
 !g   cats playing piano    → Google search
@@ -39,6 +39,7 @@ This project is a beautiful monorepo with three musketeers:
 ```
 
 ### 🎨 Frontend (kabang-ui/)
+
 - **Framework:** React 19
 - **Router:** TanStack Router
 - **Styling:** Tailwind CSS 4
@@ -47,12 +48,14 @@ This project is a beautiful monorepo with three musketeers:
 - **Build:** Vite
 
 ### ⚡ Backend (kabang-api/)
+
 - **Runtime:** Bun
 - **Framework:** Hono
 - **Database:** SQLite (default) or PostgreSQL via Drizzle ORM
 - **Cache:** In-memory cache for bang lookups
 
 ### 📚 Collections (kabang-collections/)
+
 Pre-made JSON files with popular bangs you can import. Starting with `base.json` — 25+ bangs ready to go!
 
 ---
@@ -70,6 +73,7 @@ No dependencies to install. No build steps to remember. Just:
 ### Using Docker Compose (Recommended)
 
 #### SQLite (Default - Zero Configuration)
+
 ```bash
 # Clone the repo
 git clone <repo-url>
@@ -83,6 +87,7 @@ That's it! Access Kabang at `http://localhost:5674`
 Data is persisted in `./data/sqlite.db`
 
 #### PostgreSQL (Optional)
+
 ```bash
 # Create .env file with your PostgreSQL connection string
 echo "POSTGRES_CONNECTION_STRING=postgresql://user:password@host:5432/database?sslmode=require" > .env
@@ -94,6 +99,7 @@ docker-compose up -d
 ### Using Docker/Podman directly
 
 #### SQLite (Default)
+
 ```bash
 # Build the image
 docker build -t kabang .
@@ -107,6 +113,7 @@ podman run -p 5674:5674 -v ./data:/app/kabang-api/data kabang
 ```
 
 #### PostgreSQL (Optional)
+
 ```bash
 # Build the image
 docker build -t kabang .
@@ -116,6 +123,7 @@ docker run -p 5674:5674 -e POSTGRES_CONNECTION_STRING="postgresql://user:passwor
 ```
 
 **What the Docker image does automatically:**
+
 1. ✅ Installs all dependencies
 2. ✅ Builds the React UI
 3. ✅ Seeds the database with 25+ bangs from base collection
@@ -131,6 +139,7 @@ See `.env.example` for all available environment variables and configuration opt
 Want to hack on Kabang? Build it from source!
 
 ### Prerequisites
+
 - [Bun](https://bun.sh/) installed
 - A terminal and a dream
 - (Optional) PostgreSQL database if you want to use PostgreSQL instead of SQLite
@@ -138,6 +147,7 @@ Want to hack on Kabang? Build it from source!
 ### 🏃 Quick Start
 
 #### 1. Install dependencies
+
 ```bash
 # In kabang-api/
 cd kabang-api
@@ -151,12 +161,14 @@ bun install
 #### 2. Set up the database
 
 **Option A: SQLite (Default - No configuration needed)**
+
 ```bash
 cd kabang-api
 bun run src/db.ts  # This initializes your SQLite database
 ```
 
 **Option B: PostgreSQL (Optional)**
+
 ```bash
 cd kabang-api
 
@@ -168,17 +180,20 @@ echo "POSTGRES_CONNECTION_STRING=postgresql://user:password@host:5432/database?s
 ```
 
 #### 3. Build the UI (Required!)
+
 ```bash
 cd kabang-api
 bun run build-ui
 ```
 
 This command:
+
 1. Builds the React UI into static files
 2. Copies them to `kabang-api/public/ui-build/`
 3. Makes the dashboard available at `/` when the API runs
 
 #### 4. Start the server
+
 ```bash
 cd kabang-api
 bun run dev     # Development mode (hot reload)
@@ -210,11 +225,13 @@ Now you can type `!kabang` in your address bar to access the dashboard.
 Kabang supports the OpenSearch Suggestions Extension 1.1 standard, which enables autocomplete in your browser's address bar:
 
 **Suggestion URL:**
+
 ```
 http://localhost:5674/suggestions?q={searchTerms}
 ```
 
 **Response Format:**
+
 ```json
 [
   "!gi",
@@ -225,11 +242,13 @@ http://localhost:5674/suggestions?q={searchTerms}
 ```
 
 **Behavior:**
+
 - Returns fuzzy-matched bang suggestions as you type
 - Stops suggesting once a valid bang is detected (e.g., `!g` won't suggest other bangs)
 - Shows bang name and category in the description
 
 **Setting up in your browser:**
+
 1. Add the search engine with suggestion URL:
    ```
    http://localhost:5674/suggestions?q=%s
@@ -239,6 +258,7 @@ http://localhost:5674/suggestions?q={searchTerms}
 ### Accessing the Dashboard
 
 Once your server is running, open your browser and go to:
+
 ```
 http://localhost:5674/dashboard
 ```
@@ -246,6 +266,7 @@ http://localhost:5674/dashboard
 ### 📝 Managing Bangs
 
 The dashboard lets you:
+
 - ✅ **Add** new bangs with custom triggers
 - ✏️ **Edit** existing ones
 - 🗑️ **Delete** the ones you don't need
@@ -257,27 +278,39 @@ The dashboard lets you:
 
 In addition to regular bangs, Kabang includes **special double bangs** (Ka-Bang-Bang) that perform system actions:
 
-| Bang | Usage | Description | Category |
-|------|-------|-------------|----------|
-| `!!kabang` | `!!kabang` | Opens the Kabang dashboard | System |
-| `!!sync` | `!!sync` | Refreshes the cache from the database | System |
-| `!!add` | `!!add <newbang> <url>` | Adds a new bookmark directly from the search bar | System |
+| Bang       | Usage                              | Description                                      | Category   |
+| ---------- | ---------------------------------- | ------------------------------------------------ | ---------- |
+| `!!kabang` | `!!kabang`                         | Opens the Kabang dashboard                       | System     |
+| `!!sync`   | `!!sync`                           | Refreshes the cache from the database            | System     |
+| `!!add`    | `!!add <newbang> <url>`            | Adds a new shortcut directly from the search bar | System     |
+| `!!mark`   | `!!mark "notes" <url>`             | Saves a bookmark with optional notes             | Bookmarks  |
 
 ### Ka-Bang-Bang Use Cases
 
 **`!!kabang`** — Quick Access to Dashboard
+
 - When you need to manage your bangs quickly
 - Example: `!!kabang` → Redirects to the dashboard
 
 **`!!sync`** — Cache Refresh
+
 - When you've added bangs directly in the database
 - When the cache seems out of sync
 - Example: `!!sync` → Reloads all bangs from database to cache
 
 **`!!add`** — Quick Bookmark Creation
+
 - When you want to save a URL without opening the dashboard
 - Format: `!!add docs https://docs.example.com`
-- Creates a new bookmark bang instantly
+- Creates a new shortcut bang instantly
+
+**`!!mark`** — Save Bookmarks with Notes
+
+- When you want to save a URL with notes for later reference
+- Format: `!!mark "meeting notes" https://docs.example.com`
+- Also supports: `!!mark https://example.com "quick reference"` or just `!!mark https://example.com`
+- Bookmarks appear in the dashboard under the Bookmarks tab
+- Categories can be assigned later via the dashboard
 
 ---
 
@@ -291,13 +324,14 @@ Don't want to start from scratch? Import our curated collection:
 4. Boom! 25+ bangs instantly added
 
 Or import your own custom JSON:
+
 ```json
 [
   {
     "name": "My Custom Search",
     "bang": "custom",
     "url": "https://example.com/search?q={query}",
-    "category": "Custom",
+    "category": "Custom"
   }
 ]
 ```
@@ -309,12 +343,14 @@ Or import your own custom JSON:
 ### Running in Development Mode
 
 **Terminal 1 - API:**
+
 ```bash
 cd kabang-api
 bun run dev
 ```
 
 **Terminal 2 - UI (optional, for hot reload):**
+
 ```bash
 cd kabang-ui
 bun run dev  # Runs on port 5123
@@ -325,6 +361,7 @@ The UI dev server proxies API requests, so you get instant feedback on UI change
 ### Building for Production
 
 Always build from the API directory:
+
 ```bash
 cd kabang-api
 bun run build      # Full build (UI + API)
@@ -335,6 +372,7 @@ This ensures the UI is bundled and copied to the API's public folder.
 ### Database Migrations
 
 Using Drizzle Kit:
+
 ```bash
 cd kabang-api
 bun drizzle-kit generate  # Generate migrations
@@ -356,38 +394,44 @@ The possibilities are endless! 🌈
 
 ## 🧪 Tech Stack Deep Dive
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| **Runtime** | Bun | Fast JavaScript runtime with built-in bundler, test runner, and package manager |
-| **API Framework** | Hono | Minimal, fast, and middleware-friendly web framework |
-| **Database** | SQLite + Drizzle | Zero-config, lightweight, type-safe ORM |
-| **Frontend** | React 19 | Latest and greatest with improved performance |
-| **Styling** | Tailwind CSS 4 | Utility-first, dark mode built-in, no CSS files to manage |
-| **Routing** | TanStack Router | File-based routing with automatic code splitting |
-| **State** | TanStack Query | Server state synchronization made simple |
-| **Build Tool** | Vite | Lightning fast HMR and optimized production builds |
+| Layer             | Technology       | Why                                                                             |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------- |
+| **Runtime**       | Bun              | Fast JavaScript runtime with built-in bundler, test runner, and package manager |
+| **API Framework** | Hono             | Minimal, fast, and middleware-friendly web framework                            |
+| **Database**      | SQLite + Drizzle | Zero-config, lightweight, type-safe ORM                                         |
+| **Frontend**      | React 19         | Latest and greatest with improved performance                                   |
+| **Styling**       | Tailwind CSS 4   | Utility-first, dark mode built-in, no CSS files to manage                       |
+| **Routing**       | TanStack Router  | File-based routing with automatic code splitting                                |
+| **State**         | TanStack Query   | Server state synchronization made simple                                        |
+| **Build Tool**    | Vite             | Lightning fast HMR and optimized production builds                              |
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### "Cannot find module" errors
+
 Make sure you've run `bun install` in both `kabang-api/` and `kabang-ui/`
 
 ### UI shows 404
+
 You forgot to build! Run `bun run build-ui` in the API directory.
 
 ### Database locked
+
 SQLite doesn't like multiple processes. Make sure you only have one instance of the API running.
 
 ### PostgreSQL connection failed
+
 If using PostgreSQL, ensure:
+
 - `POSTGRES_CONNECTION_STRING` is set correctly
 - The connection string format is: `postgresql://user:password@host:port/database?sslmode=require`
 - For Docker, the variable is in your `.env` file or docker-compose.yml
 - For manual builds, export it in your shell or create a `.env` file in `kabang-api/`
 
 ### Port already in use
+
 The API runs on port 5674 by default. Change it in `kabang-api/src/server.ts` if needed.
 
 ---
@@ -404,4 +448,3 @@ MIT — Go wild. Make it yours. Build something cool.
 - Built with ❤️ and way too much coffee
 
 ---
-

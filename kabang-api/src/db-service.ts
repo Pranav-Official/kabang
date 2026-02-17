@@ -1,6 +1,6 @@
-import { db, kabangs, isDatabaseConnected, retryPostgresConnection } from './db'
-import { eq, asc } from 'drizzle-orm'
-import type { Kabang, NewKabang } from './db'
+import { db, kabangs, bookmarks, isDatabaseConnected, retryPostgresConnection } from './db'
+import { eq, asc, desc } from 'drizzle-orm'
+import type { Kabang, NewKabang, Bookmark, NewBookmark, UpdateBookmark } from './db'
 
 // Helper to handle DB errors gracefully
 async function withDbFallback<T>(operation: () => Promise<T>, fallback: T): Promise<T> {
@@ -227,4 +227,70 @@ export async function importBangs(bangs: ExportBang[]): Promise<{ imported: numb
   }
 
   return { imported, errors }
+}
+
+// Bookmark CRUD Operations
+export async function getAllBookmarks(): Promise<Bookmark[]> {
+  return withDbFallback(
+    () => db.select().from(bookmarks).orderBy(desc(bookmarks.createdAt)),
+    []
+  )
+}
+
+export async function getBookmarkById(id: number): Promise<Bookmark | undefined> {
+  try {
+    const connected = await isDatabaseConnected()
+    if (!connected) return undefined
+    
+    const result = await db.select().from(bookmarks).where(eq(bookmarks.id, id))
+    return result[0]
+  } catch (error) {
+    console.error('Error getting bookmark by ID:', error)
+    return undefined
+  }
+}
+
+export async function createBookmark(data: NewBookmark): Promise<Bookmark> {
+  try {
+    const connected = await isDatabaseConnected()
+    if (!connected) {
+      throw new Error('Database not connected')
+    }
+    
+    const result = await db.insert(bookmarks).values(data).returning()
+    return result[0]
+  } catch (error) {
+    console.error('Error creating bookmark:', error)
+    throw error
+  }
+}
+
+export async function updateBookmark(id: number, data: UpdateBookmark): Promise<Bookmark | null> {
+  try {
+    const connected = await isDatabaseConnected()
+    if (!connected) {
+      throw new Error('Database not connected')
+    }
+    
+    const result = await db.update(bookmarks).set(data).where(eq(bookmarks.id, id)).returning()
+    return result[0] ?? null
+  } catch (error) {
+    console.error('Error updating bookmark:', error)
+    throw error
+  }
+}
+
+export async function deleteBookmark(id: number): Promise<Bookmark | null> {
+  try {
+    const connected = await isDatabaseConnected()
+    if (!connected) {
+      throw new Error('Database not connected')
+    }
+    
+    const result = await db.delete(bookmarks).where(eq(bookmarks.id, id)).returning()
+    return result[0] ?? null
+  } catch (error) {
+    console.error('Error deleting bookmark:', error)
+    throw error
+  }
 }

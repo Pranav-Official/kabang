@@ -5,6 +5,7 @@ import type { SpecialBangHandler, SpecialBangMetadata, RegisteredSpecialBang } f
 import * as kabangHandler from './handlers/kabang'
 import * as syncHandler from './handlers/sync'
 import * as addHandler from './handlers/add'
+import * as markHandler from './handlers/mark'
 
 // Registry map
 const registry = new Map<string, RegisteredSpecialBang>()
@@ -62,6 +63,7 @@ export function initializeSpecialBangs(): void {
   registerSpecialBang('kabang', kabangHandler.handler, kabangHandler.metadata)
   registerSpecialBang('sync', syncHandler.handler, syncHandler.metadata)
   registerSpecialBang('add', addHandler.handler, addHandler.metadata)
+  registerSpecialBang('mark', markHandler.handler, markHandler.metadata)
 }
 
 // Auto-initialize on import
