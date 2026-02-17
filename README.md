@@ -278,11 +278,12 @@ The dashboard lets you:
 
 In addition to regular bangs, Kabang includes **special double bangs** (Ka-Bang-Bang) that perform system actions:
 
-| Bang       | Usage                   | Description                                      | Category |
-| ---------- | ----------------------- | ------------------------------------------------ | -------- |
-| `!!kabang` | `!!kabang`              | Opens the Kabang dashboard                       | System   |
-| `!!sync`   | `!!sync`                | Refreshes the cache from the database            | System   |
-| `!!add`    | `!!add <newbang> <url>` | Adds a new shortcut directly from the search bar | System   |
+| Bang       | Usage                              | Description                                      | Category   |
+| ---------- | ---------------------------------- | ------------------------------------------------ | ---------- |
+| `!!kabang` | `!!kabang`                         | Opens the Kabang dashboard                       | System     |
+| `!!sync`   | `!!sync`                           | Refreshes the cache from the database            | System     |
+| `!!add`    | `!!add <newbang> <url>`            | Adds a new shortcut directly from the search bar | System     |
+| `!!mark`   | `!!mark "notes" <url>`             | Saves a bookmark with optional notes             | Bookmarks  |
 
 ### Ka-Bang-Bang Use Cases
 
@@ -302,6 +303,14 @@ In addition to regular bangs, Kabang includes **special double bangs** (Ka-Bang-
 - When you want to save a URL without opening the dashboard
 - Format: `!!add docs https://docs.example.com`
 - Creates a new shortcut bang instantly
+
+**`!!mark`** — Save Bookmarks with Notes
+
+- When you want to save a URL with notes for later reference
+- Format: `!!mark "meeting notes" https://docs.example.com`
+- Also supports: `!!mark https://example.com "quick reference"` or just `!!mark https://example.com`
+- Bookmarks appear in the dashboard under the Bookmarks tab
+- Categories can be assigned later via the dashboard
 
 ---
 

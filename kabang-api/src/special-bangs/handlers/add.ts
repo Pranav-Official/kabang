@@ -80,8 +80,56 @@ export async function handler(c: Context, args: string): Promise<Response> {
       isDefault: false
     })
 
-    // Redirect to the bookmarked URL
-    return c.redirect(bookmarkUrl, 307)
+    // Show success page with redirect
+    return c.html(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta http-equiv="refresh" content="0; url=${bookmarkUrl}">
+        <title>Bang Created</title>
+        <style>
+          body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          }
+          .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            text-align: center;
+          }
+          .icon { font-size: 3rem; margin-bottom: 1rem; }
+          h1 { color: #333; margin-bottom: 0.5rem; }
+          p { color: #666; }
+          .bang-name { 
+            color: #667eea; 
+            font-weight: bold; 
+            font-family: monospace;
+            background: #f0f0f0;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+          }
+          a { color: #667eea; text-decoration: none; }
+          a:hover { text-decoration: underline; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="icon">✅</div>
+          <h1>Bang Created!</h1>
+          <p>Created bang <span class="bang-name">!${bookmarkBang}</span></p>
+          <p>Redirecting to <a href="${bookmarkUrl}">${bookmarkUrl}</a>...</p>
+          <p><small>Click the link if you are not redirected automatically.</small></p>
+        </div>
+      </body>
+      </html>
+    `)
   } catch (error) {
     console.error('Error creating bookmark:', error)
     return c.html(loadTemplate(TEMPLATES.ADD_DB_CONNECTION_ERROR))

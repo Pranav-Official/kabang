@@ -220,10 +220,11 @@ initDb().catch((err) => {
 
 // Function to check if DB is available - also verifies the connection is still alive
 export async function isDatabaseConnected(): Promise<boolean> {
-  if (!isDbConnected || !pgPool) return false;
+  if (!isDbConnected) return false;
   
   // For PostgreSQL, verify the pool is still healthy
-  if (dbType === "postgresql" && pgPool) {
+  if (dbType === "postgresql") {
+    if (!pgPool) return false;
     try {
       const client = await pgPool.connect();
       await client.query('SELECT 1');
@@ -236,6 +237,7 @@ export async function isDatabaseConnected(): Promise<boolean> {
     }
   }
   
+  // For SQLite, just return the connection status
   return isDbConnected;
 }
 
