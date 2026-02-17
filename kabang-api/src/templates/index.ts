@@ -40,6 +40,7 @@ export const TEMPLATES = {
   ADD_DB_ERROR: 'add-db-error.html',
   ADD_EXISTS: 'add-exists.html',
   ADD_DB_CONNECTION_ERROR: 'add-db-connection-error.html',
+  ADD_SUCCESS: 'add-success.html',
   SYNC_SUCCESS: 'sync-success.html',
   SYNC_ERROR: 'sync-error.html',
   MARK_INVALID_FORMAT: 'mark-invalid-format.html',
